@@ -32,12 +32,88 @@ function selectedRelease() {
   );
 }
 
-function clearManifest() {
-  installer.removeAttribute("manifest");
+async function updateManifest() {
+  clearManifest();
 
-  if (manifestUrl) {
-    URL.revokeObjectURL(manifestUrl);
-    manifestUrl = null;
+  const release = selectedRelease();
+
+  if (!release) {
+    setInfo("Chưa chọn phiên bản firmware.", "warning");
+    return;
+  }
+
+  const expected = BOARD_FIRMWARE[selectedBoard];
+
+  const asset = release.assets?.find(
+    item => item.name === expected && item.size > 0
+  );
+
+  if (!asset) {
+    setInfo(
+      `Release ${release.tag_name} chưa có file ${expected}.`,
+      "warning"
+    );
+    return;
+  }
+
+  const firmwareUrl = firmwareUrlFor(release);
+
+  const manifest = {
+    name: `Car Dashboard ${selectedBoard}`,
+    version: release.tag_name,
+    new_install_prompt_erase: true,
+    builds: [
+      {
+        chipFamily: "ESP32-S3",
+        parts: [
+          {
+            path: firmwareUrl,
+            offset: 0
+          }
+        ]
+      }
+    ]
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(manifest)],
+    { type: "application/json" }
+  );
+
+  const newManifestUrl = URL.createObjectURL(blob);
+  manifestUrl = newManifestUrl;
+
+  try {
+    // Đảm bảo ESP Web Tools đã được khởi tạo.
+    await customElements.whenDefined("esp-web-install-button");
+
+    // Không gán manifest cũ nếu người dùng đã đổi phiên bản.
+    if (manifestUrl !== newManifestUrl) {
+      URL.revokeObjectURL(newManifestUrl);
+      return;
+    }
+
+    // Gán trực tiếp qua property của ESP Web Tools.
+    installer.manifest = newManifestUrl;
+
+    const size = (asset.size / 1024 / 1024).toFixed(2);
+
+    setInfo(
+      `${release.tag_name} · ${selectedBoard} · ${size} MB. Firmware đã sẵn sàng.`,
+      "success"
+    );
+
+    console.log("ESP Web Tools manifest:", manifest);
+    console.log("Manifest URL:", newManifestUrl);
+    console.log("Firmware URL:", firmwareUrl);
+
+  } catch (error) {
+    console.error("Manifest initialization error:", error);
+
+    setInfo(
+      "Không thể khởi tạo manifest: " + error.message,
+      "error"
+    );
   }
 }
 
