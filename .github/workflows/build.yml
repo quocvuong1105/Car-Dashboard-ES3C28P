@@ -51,7 +51,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: CarCYD-ES3C28P-firmware
+          name: firmware-output
           path: firmware-output/*
           if-no-files-found: error
           retention-days: 30
