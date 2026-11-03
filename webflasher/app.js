@@ -67,7 +67,10 @@ function updateManifest() {
     builds: [{
       chipFamily: "ESP32-S3",
       parts: [{
-        path: asset.browser_download_url,
+        path: new URL(
+          `./firmware/${encodeURIComponent(asset.name)}`,
+          location.href
+        ).href,
         offset: 0
       }]
     }]

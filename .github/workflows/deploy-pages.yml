@@ -14,27 +14,42 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
   deploy:
+    name: Deploy website and firmware
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
+    runs-on: ubuntu-24.04
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Check website files
+        run: |
+          echo "Website files:"
+          find webflasher -maxdepth 3 -type f
+
+          if [ ! -f webflasher/index.html ]; then
+            echo "ERROR: webflasher/index.html not found"
+            exit 1
+          fi
+
+          mkdir -p webflasher/firmware
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload website
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./webflasher
 
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4s
