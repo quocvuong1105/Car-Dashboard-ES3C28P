@@ -1,75 +1,213 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101722">
-  <title>Car Dashboard Firmware Flasher</title>
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+  <title>Car Dashboard - Firmware Flasher</title>
+
+  <script
+    type="module"
+    src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module">
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #101827;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .panel {
+      width: min(92%, 430px);
+      padding: 30px;
+      background: #1c293b;
+      border: 1px solid #34445b;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    h2 { margin: 0 0 8px; }
+
+    .subtitle {
+      color: #aab8ca;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    .file-box {
+      display: block;
+      padding: 25px 15px;
+      border: 2px dashed #526783;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+
+    .file-box:hover {
+      border-color: #36a3ff;
+      background: #24364d;
+    }
+
+    .file-box input { display: none; }
+
+    .file-name {
+      color: #aab8ca;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      margin-top: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: 0;
+      border-radius: 9px;
+      background: #1685e8;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #526174;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 18px;
+      color: #aab8ca;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .warning {
+      margin-top: 22px;
+      color: #f5c66b;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    esp-web-install-button:not([install-unsupported]) {
+      display: block;
+    }
+
+    esp-web-install-button button {
+      background: #16a36a;
+    }
+  </style>
 </head>
+
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <a class="brand" href="./">
-        <span class="brand-mark">C</span>
-        <span><b>Car Dashboard</b><small>FIRMWARE CENTER</small></span>
-      </a>
-      <span class="online"><i></i> GitHub Releases</span>
-    </header>
+  <main class="panel">
+    <h2>CAR DASHBOARD</h2>
+    <div class="subtitle">ESP32-S3 Firmware Flasher</div>
 
-    <section class="hero">
-      <p class="eyebrow">LCDWIKI · ESP32-S3 · LVGL</p>
-      <h1>Firmware <em>Flasher</em></h1>
-      <p class="lead">Cài đặt hoặc khôi phục CarCYD trực tiếp qua USB, ngay trong trình duyệt.</p>
-    </section>
-
-    <section class="panel">
-      <div class="panel-heading">
-        <div><span class="step">01</span><h2>Chọn bo mạch</h2></div>
-        <span class="chip">ESP32-S3</span>
+    <label class="file-box">
+      <strong>📁 CHỌN FIRMWARE (.BIN)</strong>
+      <div class="file-name" id="fileName">
+        Chưa chọn file firmware
       </div>
-      <div class="board-grid">
-        <label class="board-option">
-          <input type="radio" name="board" value="ES3C28P" checked>
-          <span class="board-card">
-            <b>ES3C28P</b>
-            <small>2.8 inch · Capacitive touch</small>
-          </span>
-        </label>
-      </div>
+      <input type="file" id="firmware" accept=".bin,application/octet-stream">
+    </label>
 
-      <div class="field">
-        <label for="release">02 · Phiên bản firmware</label>
-        <select id="release" disabled><option>Đang tải danh sách phiên bản…</option></select>
-        <small id="release-note">Danh sách lấy từ GitHub Releases của repository.</small>
-      </div>
+    <esp-web-install-button id="installer">
+      <button slot="activate" id="flashButton" disabled>
+        NẠP FIRMWARE
+      </button>
 
-      <div class="firmware-info" id="firmware-info">
-        <span class="info-icon">i</span>
-        <p>Chọn bo mạch và phiên bản. Website sẽ kiểm tra bản firmware tương ứng trước khi cho phép nạp.</p>
-      </div>
+      <span slot="unsupported">
+        Trình duyệt không hỗ trợ Web Serial. Hãy dùng Chrome hoặc Edge trên máy tính.
+      </span>
 
-      <div class="install-area">
-        <esp-web-install-button id="installer">
-          <span slot="unsupported" class="unsupported">Trình duyệt chưa hỗ trợ Web Serial. Hãy dùng Chrome hoặc Microsoft Edge trên máy tính.</span>
-          <span slot="not-allowed" class="unsupported">Trang cần được mở bằng HTTPS và trình duyệt phải cho phép truy cập cổng nối tiếp.</span>
-        </esp-web-install-button>
-        <p class="hint">Kết nối bo bằng cáp USB có truyền dữ liệu. Chọn đúng cổng thiết bị khi trình duyệt hỏi.</p>
-      </div>
-    </section>
+      <span slot="not-allowed">
+        Hãy mở website bằng HTTPS.
+      </span>
+    </esp-web-install-button>
 
-    <section class="notice">
-      <h3>Trước khi cài đặt</h3>
-      <ul>
-        <li>Dùng Chrome hoặc Microsoft Edge trên Windows, macOS hoặc Linux.</li>
-        <li>Không rút cáp USB trong khi đang ghi firmware.</li>
-        <li>Chọn đúng ES3C28P hoặc ES3N28P. Hai mẫu cùng dùng ESP32-S3 nên trình duyệt không tự phân biệt được tên bo.</li>
-        <li>Firmware đầu tiên có thể xóa dữ liệu cấu hình đang lưu trên thiết bị.</li>
-      </ul>
-    </section>
-    <footer>CarCYD Firmware Flasher · Powered by ESP Web Tools</footer>
+    <div class="status" id="status">
+      Chọn file firmware để bắt đầu.
+    </div>
+
+    <div class="warning">
+      Chỉ sử dụng firmware đúng cho bo LCDWiki ES3C28P.
+      Không ngắt cáp USB trong quá trình nạp.
+    </div>
   </main>
-  <script type="module" src="./app.js?v=3"></script>
+
+  <script type="module">
+    const fileInput = document.getElementById("firmware");
+    const fileName = document.getElementById("fileName");
+    const flashButton = document.getElementById("flashButton");
+    const installer = document.getElementById("installer");
+    const status = document.getElementById("status");
+
+    let firmwareURL = null;
+    let manifestURL = null;
+
+    function formatSize(bytes) {
+      return (bytes / 1024 / 1024).toFixed(2) + " MB";
+    }
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+
+      if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith(".bin")) {
+        status.textContent = "File không hợp lệ. Hãy chọn file .bin";
+        flashButton.disabled = true;
+        return;
+      }
+
+      if (firmwareURL) URL.revokeObjectURL(firmwareURL);
+      if (manifestURL) URL.revokeObjectURL(manifestURL);
+
+      firmwareURL = URL.createObjectURL(file);
+
+      const manifest = {
+        name: "Car Dashboard ES3C28P",
+        version: "Local firmware",
+        builds: [
+          {
+            chipFamily: "ESP32-S3",
+            parts: [
+              {
+                path: firmwareURL,
+                offset: 0
+              }
+            ]
+          }
+        ]
+      };
+
+      const manifestBlob = new Blob(
+        [JSON.stringify(manifest)],
+        { type: "application/json" }
+      );
+
+      manifestURL = URL.createObjectURL(manifestBlob);
+
+      await customElements.whenDefined("esp-web-install-button");
+
+      installer.manifest = manifestURL;
+
+      fileName.textContent =
+        file.name + " (" + formatSize(file.size) + ")";
+
+      flashButton.disabled = false;
+
+      status.textContent =
+        "Đã chọn firmware. Nhấn NẠP FIRMWARE để kết nối bo mạch.";
+    });
+  </script>
 </body>
 </html>
