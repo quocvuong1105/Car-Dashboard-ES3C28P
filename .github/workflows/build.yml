@@ -1,9 +1,6 @@
 name: Build LCDWiki ES3C28P firmware
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
