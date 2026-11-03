@@ -1,49 +1,48 @@
-name: Release Firmware
+name: Build LCDWiki ES3C28P
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Firmware version (example: v1.0.0)"
-        required: true
-        type: string
-        default: "v1.0.0"
-      release_notes:
-        description: "Release notes"
-        required: true
-        type: string
-        default: "Car Dashboard ESP32-S3 firmware release"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-release:
-    name: Build and publish firmware
+  build:
+    name: Build ESP32-S3 firmware
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-        with:
-          ref: main
 
-      - name: Validate version
-        env:
-          VERSION: ${{ inputs.version }}
+      - name: Find Arduino sketch
+        id: sketch
+        shell: bash
         run: |
-          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version: $VERSION"
-            echo "Use format v1.0.0"
+          mapfile -t FILES < <(
+            find . -type f -name "*.ino" \
+              ! -path "./.git/*"
+          )
+
+          if [ "${#FILES[@]}" -ne 1 ]; then
+            echo "Expected exactly one .ino file."
+            printf '%s\n' "${FILES[@]}"
             exit 1
           fi
 
-      - name: Check repository structure
-        run: |
-          echo "Repository structure:"
-          ls -la
-          echo "Arduino sketch files:"
-          find . -name "*.ino" -type f
+          SKETCH_DIR=$(dirname "${FILES[0]}")
+          SKETCH_NAME=$(basename "${FILES[0]}" .ino)
+
+          if [ "$(basename "$SKETCH_DIR")" != "$SKETCH_NAME" ]; then
+            echo "Sketch folder must match .ino filename."
+            echo "Folder: $SKETCH_DIR"
+            echo "File: ${FILES[0]}"
+            exit 1
+          fi
+
+          echo "dir=$SKETCH_DIR" >> "$GITHUB_OUTPUT"
+          echo "Sketch: ${FILES[0]}"
+          echo "Directory: $SKETCH_DIR"
 
       - name: Install Arduino CLI
         uses: arduino/setup-arduino-cli@v2
@@ -56,7 +55,8 @@ jobs:
           arduino-cli core update-index
 
       - name: Install ESP32 Arduino core
-        run: arduino-cli core install esp32:esp32@3.2.1
+        run: |
+          arduino-cli core install esp32:esp32@3.2.1
 
       - name: Install Arduino libraries
         run: |
@@ -64,7 +64,7 @@ jobs:
           arduino-cli lib install "lvgl@9.6.0"
           arduino-cli lib install LovyanGFX
 
-      - name: Compile ESP32-S3 firmware
+      - name: Compile firmware
         run: |
           mkdir -p firmware-output
 
@@ -72,54 +72,19 @@ jobs:
             --fqbn "esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB" \
             --warnings all \
             --output-dir "$GITHUB_WORKSPACE/firmware-output" \
-            Car-Dashboard-ES3C28P/Car-Dashboard-ES3C28P
+            "${{ steps.sketch.outputs.dir }}"
 
-      - name: Find and prepare merged firmware
+      - name: List firmware files
+        if: always()
         run: |
-          echo "Generated files:"
-          find firmware-output -type f -printf '%f %s bytes\n'
+          find firmware-output -type f \
+            -printf '%f %s bytes\n' || true
 
-          MERGED_FILE=$(find firmware-output \
-            -type f -name "*.merged.bin" -print -quit)
-
-          if [ -z "$MERGED_FILE" ]; then
-            echo "ERROR: merged firmware not found!"
-            exit 1
-          fi
-
-          mkdir -p firmware-release
-
-          cp "$MERGED_FILE" \
-            firmware-release/CarCYD-ES3C28P-merged.bin
-
-          ls -lh firmware-release/
-
-      - name: Upload firmware artifact
+      - name: Upload firmware artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Car-Dashboard-ES3C28P-${{ inputs.version }}
-          path: firmware-release/CarCYD-ES3C28P-merged.bin
+          name: Car-Dashboard-ES3C28P-firmware
+          path: firmware-output/*
           if-no-files-found: error
-          retention-days: 90
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: Car Dashboard ESP32-S3 ${{ inputs.version }}
-          body: |
-            ${{ inputs.release_notes }}
-
-            ## Firmware
-            - Board: LCDWiki ES3C28P
-            - Chip: ESP32-S3
-            - Flash: 16 MB
-            - PSRAM: OPI
-
-            Firmware file:
-            - CarCYD-ES3C28P-merged.bin
-          target_commitish: main
-          files: firmware-release/CarCYD-ES3C28P-merged.bin
-          fail_on_unmatched_files: true
-          draft: false
-          prerelease: false
+          retention-days: 30
