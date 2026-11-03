@@ -4,7 +4,7 @@ name: Release Firmware
 on:
   workflow_dispatch:
     inputs:
-      version:
+      version:v1.0.0
         description: "Firmware version (example: v1.0.0)"
         required: true
         type: string
@@ -65,7 +65,7 @@ jobs:
             --fqbn "esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB" \
             --warnings all \
             --output-dir "$GITHUB_WORKSPACE/firmware-output" \
-            CarCYD-ES3C28P
+            Car-Dashboard-ES3C28P/Car-Dashboard-ES3C28P
 
       - name: Find and prepare merged firmware
         run: |
