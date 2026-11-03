@@ -1,27 +1,48 @@
+```javascript
+// ======================================================
+// CAR DASHBOARD - ESP32-S3 WEB FLASHER
+// Board: LCDWiki ES3C28P
+// ======================================================
+
+// 1. CONFIGURATION
 const OWNER = "quocvuong1105";
 const REPO = "Car-Dashboard-ES3C28P";
 
 const API =
   `https://api.github.com/repos/${OWNER}/${REPO}/releases`;
 
-const FIRMWARE_BASE =
-  `./firmware/`;
-
-const releaseSelect = document.querySelector("#release");
-const installer = document.querySelector("#installer");
-const info = document.querySelector("#firmware-info");
-const note = document.querySelector("#release-note");
-
-let releases = [];
-let selectedBoard = "ES3C28P";
-let manifestUrl = null;
+const FIRMWARE_BASE = "./firmware/";
 
 const BOARD_FIRMWARE = {
   ES3C28P: "CarCYD-ES3C28P-merged.bin"
 };
 
+// 2. DOM ELEMENTS
+const releaseSelect = document.querySelector("#release");
+const installer = document.querySelector("#installer");
+const info = document.querySelector("#firmware-info");
+const note = document.querySelector("#release-note");
+
+if (!releaseSelect || !installer || !info || !note) {
+  throw new Error(
+    "Không tìm thấy một hoặc nhiều thành phần HTML cần thiết. Kiểm tra ID trong index.html."
+  );
+}
+
+// 3. APPLICATION STATE
+let releases = [];
+let selectedBoard = "ES3C28P";
+let manifestUrl = null;
+let updateSequence = 0;
+
+// 4. UI HELPERS
 function setInfo(message, status = "info") {
-  info.querySelector("p").textContent = message;
+  const paragraph = info.querySelector("p");
+
+  if (paragraph) {
+    paragraph.textContent = message;
+  }
+
   info.dataset.status = status;
 }
 
@@ -31,25 +52,60 @@ function selectedRelease() {
   );
 }
 
+// 5. MANIFEST HELPERS
+function clearManifest() {
+  installer.removeAttribute("manifest");
+
+  if (manifestUrl) {
+    URL.revokeObjectURL(manifestUrl);
+    manifestUrl = null;
+  }
+}
+
+function firmwareUrlFor(release) {
+  const tag = encodeURIComponent(release.tag_name);
+
+  return new URL(
+    `${FIRMWARE_BASE}${tag}.bin`,
+    document.baseURI
+  ).href;
+}
+
+// 6. UPDATE MANIFEST
 async function updateManifest() {
+  const currentSequence = ++updateSequence;
+
   clearManifest();
 
   const release = selectedRelease();
 
   if (!release) {
-    setInfo("Chưa chọn phiên bản firmware.", "warning");
+    setInfo(
+      "Chưa chọn phiên bản firmware.",
+      "warning"
+    );
     return;
   }
 
-  const expected = BOARD_FIRMWARE[selectedBoard];
+  const expectedFile = BOARD_FIRMWARE[selectedBoard];
+
+  if (!expectedFile) {
+    setInfo(
+      `Chưa cấu hình firmware cho bo mạch ${selectedBoard}.`,
+      "warning"
+    );
+    return;
+  }
 
   const asset = release.assets?.find(
-    item => item.name === expected && item.size > 0
+    item =>
+      item.name === expectedFile &&
+      item.size > 0
   );
 
   if (!asset) {
     setInfo(
-      `Release ${release.tag_name} chưa có file ${expected}.`,
+      `Release ${release.tag_name} chưa có file ${expectedFile}.`,
       "warning"
     );
     return;
@@ -75,138 +131,126 @@ async function updateManifest() {
   };
 
   const blob = new Blob(
-    [JSON.stringify(manifest)],
-    { type: "application/json" }
+    [JSON.stringify(manifest, null, 2)],
+    {
+      type: "application/json"
+    }
   );
 
   const newManifestUrl = URL.createObjectURL(blob);
+
   manifestUrl = newManifestUrl;
 
   try {
-    // Đảm bảo ESP Web Tools đã được khởi tạo.
-    await customElements.whenDefined("esp-web-install-button");
+    await customElements.whenDefined(
+      "esp-web-install-button"
+    );
 
-    // Không gán manifest cũ nếu người dùng đã đổi phiên bản.
-    if (manifestUrl !== newManifestUrl) {
+    // Bỏ qua manifest cũ nếu người dùng đã đổi phiên bản.
+    if (currentSequence !== updateSequence) {
       URL.revokeObjectURL(newManifestUrl);
       return;
     }
 
-    // Gán trực tiếp qua property của ESP Web Tools.
+    // Kiểm tra manifest Blob có đọc được không.
+    const testResponse = await fetch(newManifestUrl);
+
+    if (!testResponse.ok) {
+      throw new Error(
+        `Không đọc được manifest: HTTP ${testResponse.status}`
+      );
+    }
+
+    await testResponse.json();
+
+    if (currentSequence !== updateSequence) {
+      URL.revokeObjectURL(newManifestUrl);
+      return;
+    }
+
+    // Gán manifest cho ESP Web Tools.
     installer.manifest = newManifestUrl;
 
-    const size = (asset.size / 1024 / 1024).toFixed(2);
+    const sizeMB = (
+      asset.size / 1024 / 1024
+    ).toFixed(2);
 
     setInfo(
-      `${release.tag_name} · ${selectedBoard} · ${size} MB. Firmware đã sẵn sàng.`,
+      `${release.tag_name} · ${selectedBoard} · ${sizeMB} MB. Firmware đã sẵn sàng.`,
       "success"
     );
 
-    console.log("ESP Web Tools manifest:", manifest);
-    console.log("Manifest URL:", newManifestUrl);
-    console.log("Firmware URL:", firmwareUrl);
+    console.log(
+      "[Car Dashboard] Manifest:",
+      manifest
+    );
+
+    console.log(
+      "[Car Dashboard] Manifest URL:",
+      newManifestUrl
+    );
+
+    console.log(
+      "[Car Dashboard] Firmware URL:",
+      firmwareUrl
+    );
 
   } catch (error) {
-    console.error("Manifest initialization error:", error);
+    if (currentSequence !== updateSequence) {
+      return;
+    }
+
+    console.error(
+      "[Car Dashboard] Manifest initialization error:",
+      error
+    );
+
+    clearManifest();
 
     setInfo(
-      "Không thể khởi tạo manifest: " + error.message,
+      `Không thể khởi tạo manifest: ${error.message}`,
       "error"
     );
   }
 }
 
-function firmwareUrlFor(release) {
-  const tag = release.tag_name;
-
-  return new URL(
-    `${FIRMWARE_BASE}${encodeURIComponent(tag)}.bin`,
-    document.baseURI
-  ).href;
-}
-
-function updateManifest() {
-  clearManifest();
-
-  const release = selectedRelease();
-
-  if (!release) {
-    setInfo("Chưa chọn phiên bản firmware.", "warning");
-    return;
-  }
-
-  const expected = BOARD_FIRMWARE[selectedBoard];
-
-  const asset = release.assets?.find(
-    item => item.name === expected && item.size > 0
-  );
-
-  if (!asset) {
-    setInfo(
-      `Release ${release.tag_name} chưa có file ${expected}.`,
-      "warning"
-    );
-    return;
-  }
-
-  const firmwareUrl = firmwareUrlFor(release);
-
-  const manifest = {
-    name: `Car Dashboard ${selectedBoard}`,
-    version: release.tag_name,
-    new_install_prompt_erase: true,
-    builds: [
-      {
-        chipFamily: "ESP32-S3",
-        parts: [
-          {
-            path: firmwareUrl,
-            offset: 0
-          }
-        ]
-      }
-    ]
-  };
-
-  const blob = new Blob(
-    [JSON.stringify(manifest)],
-    { type: "application/json" }
-  );
-
-  manifestUrl = URL.createObjectURL(blob);
-  installer.setAttribute("manifest", manifestUrl);
-
-  const size = (asset.size / 1024 / 1024).toFixed(2);
-
-  setInfo(
-    `${release.tag_name} · ${selectedBoard} · ${size} MB. Firmware đã sẵn sàng.`,
-    "success"
-  );
-}
-
+// 7. LOAD GITHUB RELEASES
 async function loadReleases() {
   releaseSelect.disabled = true;
-  note.textContent = "Đang kết nối GitHub Releases...";
+
+  note.textContent =
+    "Đang kết nối GitHub Releases...";
+
+  setInfo(
+    "Đang tải danh sách phiên bản firmware...",
+    "info"
+  );
 
   clearManifest();
 
   try {
+    console.log(
+      "[Car Dashboard] Loading releases:",
+      API
+    );
+
     const response = await fetch(API, {
       headers: {
         Accept: "application/vnd.github+json"
-      }
+      },
+      cache: "no-store"
     });
 
     if (!response.ok) {
       if (response.status === 404) {
         throw new Error(
-          "Không tìm thấy Release. Kiểm tra repository Public và đã phát hành firmware."
+          "Không tìm thấy GitHub Releases. Kiểm tra repository và quyền truy cập."
         );
       }
 
       if (response.status === 403) {
         throw new Error(
-          "GitHub API đang giới hạn truy cập. Hãy thử tải lại sau."
+          "GitHub API đang giới hạn truy cập. Hãy thử lại sau."
         );
       }
 
@@ -216,6 +260,12 @@ async function loadReleases() {
     }
 
     const data = await response.json();
+
+    if (!Array.isArray(data)) {
+      throw new Error(
+        "Dữ liệu GitHub Releases không hợp lệ."
+      );
+    }
 
     releases = data
       .filter(release =>
@@ -229,57 +279,19 @@ async function loadReleases() {
 
     releaseSelect.innerHTML = "";
 
-    if (!releases.length) {
+    if (releases.length === 0) {
       throw new Error(
-        "Chưa có GitHub Release. Hãy chạy workflow Release Firmware."
+        "Chưa có phiên bản firmware hợp lệ."
       );
     }
 
+    // Thêm danh sách phiên bản.
     releases.forEach(release => {
       const option = document.createElement("option");
 
-      option.value = release.id;
-      option.textContent =
-        `${release.tag_name} · ${
-          new Date(release.published_at).toLocaleDateString("vi-VN")
-        }`;
+      option.value = String(release.id);
 
-      releaseSelect.appendChild(option);
-    });
-
-    releaseSelect.disabled = false;
-
-    note.textContent =
-      `Tìm thấy ${releases.length} phiên bản. Đang hiển thị phiên bản mới nhất trước.`;
-
-    updateManifest();
-
-  } catch (error) {
-    releases = [];
-
-    releaseSelect.innerHTML = "";
-    releaseSelect.appendChild(
-      new Option("Không có phiên bản khả dụng", "")
-    );
-
-    setInfo(error.message, "error");
-    note.textContent = error.message;
-  }
-}
-
-releaseSelect.addEventListener(
-  "change",
-  updateManifest
-);
-
-document
-  .querySelectorAll('input[name="board"]')
-  .forEach(input => {
-    input.addEventListener("change", () => {
-      selectedBoard = input.value;
-      updateManifest();
-    });
-  });
-
-loadReleases();
-```
+      const publishedDate = release.published_at
+        ? new Date(
+            release.published_at
+          ).to
