@@ -131,7 +131,7 @@ jobs:
           ls -lh firmware-release/
 
       - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Car-Dashboard-ES3C28P-${{ inputs.version }}
           path: firmware-release/CarCYD-ES3C28P-merged.bin
