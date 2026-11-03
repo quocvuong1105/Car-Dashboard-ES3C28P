@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir -p firmware-output
           arduino-cli compile \
-            --fqbn "esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi,PartitionScheme=default_16MB" \
+            --fqbn "esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB" \
             --warnings all \
             --output-dir "$GITHUB_WORKSPACE/firmware-output" \
             CarCYD-ES3C28P
