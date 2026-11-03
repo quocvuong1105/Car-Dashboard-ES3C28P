@@ -63,12 +63,17 @@ function clearManifest() {
 }
 
 function firmwareUrlFor(release) {
-  const tag = encodeURIComponent(release.tag_name);
+  const expectedFile = BOARD_FIRMWARE[selectedBoard];
 
-  return new URL(
-    `${FIRMWARE_BASE}${tag}.bin`,
-    document.baseURI
-  ).href;
+  const asset = release.assets?.find(
+    item => item.name === expectedFile && item.size > 0
+  );
+
+  if (!asset) {
+    throw new Error(`Không tìm thấy firmware ${expectedFile}`);
+  }
+
+  return asset.browser_download_url;
 }
 
 // 6. UPDATE MANIFEST
