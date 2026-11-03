@@ -1,3 +1,4 @@
+```yaml
 name: Release Firmware
 
 on:
@@ -17,15 +18,21 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build-and-release:
-    name: Build and publish firmware
-    runs-on: ubuntu-latest
+    name: Build, publish firmware and deploy website
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
 
@@ -159,3 +166,77 @@ jobs:
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
+
+      # ==========================================
+      # AUTOMATIC GITHUB PAGES DEPLOYMENT
+      # ==========================================
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Collect firmware from all Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          mkdir -p webflasher/firmware
+
+          # Remove old generated firmware files.
+          find webflasher/firmware \
+            -maxdepth 1 -type f -name "*.bin" -delete
+
+          echo "Collecting firmware from all GitHub Releases..."
+
+          while IFS= read -r TAG; do
+            [ -z "$TAG" ] && continue
+
+            echo "Checking release: $TAG"
+
+            TMP_DIR=$(mktemp -d)
+
+            if gh release download "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --pattern "CarCYD-ES3C28P-merged.bin" \
+              --dir "$TMP_DIR"; then
+
+              cp "$TMP_DIR/CarCYD-ES3C28P-merged.bin" \
+                "webflasher/firmware/${TAG}.bin"
+
+              echo "Added: ${TAG}.bin"
+            else
+              echo "No firmware asset found for $TAG"
+            fi
+
+            rm -rf "$TMP_DIR"
+
+          done < <(
+            gh api --paginate \
+              "repos/$GITHUB_REPOSITORY/releases" \
+              --jq '.[].tag_name'
+          )
+
+          # Ensure the newly published firmware is present.
+          if [ ! -f "webflasher/firmware/${CURRENT_VERSION}.bin" ]; then
+            echo "ERROR: Current firmware was not collected."
+            exit 1
+          fi
+
+          echo "Firmware files ready for deployment:"
+          ls -lh webflasher/firmware/
+
+      - name: Check website files
+        run: |
+          if [ ! -f webflasher/index.html ]; then
+            echo "ERROR: webflasher/index.html not found."
+            exit 1
+          fi
+
+          echo "Website is ready."
+
+      - name: Upload website to GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./webflasher
+
+      - name: Deploy website
