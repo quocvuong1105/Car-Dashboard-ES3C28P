@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101722">
+  <title>CarCYD Firmware Flasher</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="./">
+        <span class="brand-mark">C</span>
+        <span><b>CarCYD</b><small>FIRMWARE CENTER</small></span>
+      </a>
+      <span class="online"><i></i> GitHub Releases</span>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">LCDWIKI · ESP32-S3 · LVGL</p>
+      <h1>Firmware <em>Flasher</em></h1>
+      <p class="lead">Cài đặt hoặc khôi phục CarCYD trực tiếp qua USB, ngay trong trình duyệt.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div><span class="step">01</span><h2>Chọn bo mạch</h2></div>
+        <span class="chip">ESP32-S3</span>
+      </div>
+      <div class="board-grid">
+        <label class="board-option">
+          <input type="radio" name="board" value="ES3C28P" checked>
+          <span class="board-card"><b>ES3C28P</b><small>2.8 inch · Capacitive touch</small></span>
+        </label>
+        <label class="board-option">
+          <input type="radio" name="board" value="ES3N28P">
+          <span class="board-card"><b>ES3N28P</b><small>2.8 inch · Kiểm tra đúng phiên bản</small></span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label for="release">02 · Phiên bản firmware</label>
+        <select id="release" disabled><option>Đang tải danh sách phiên bản…</option></select>
+        <small id="release-note">Danh sách lấy từ GitHub Releases của repository.</small>
+      </div>
+
+      <div class="firmware-info" id="firmware-info">
+        <span class="info-icon">i</span>
+        <p>Chọn bo mạch và phiên bản. Website sẽ kiểm tra bản firmware tương ứng trước khi cho phép nạp.</p>
+      </div>
+
+      <div class="install-area">
+        <esp-web-install-button id="installer">
+          <span slot="unsupported" class="unsupported">Trình duyệt chưa hỗ trợ Web Serial. Hãy dùng Chrome hoặc Microsoft Edge trên máy tính.</span>
+          <span slot="not-allowed" class="unsupported">Trang cần được mở bằng HTTPS và trình duyệt phải cho phép truy cập cổng nối tiếp.</span>
+        </esp-web-install-button>
+        <p class="hint">Kết nối bo bằng cáp USB có truyền dữ liệu. Chọn đúng cổng thiết bị khi trình duyệt hỏi.</p>
+      </div>
+    </section>
+
+    <section class="notice">
+      <h3>Trước khi cài đặt</h3>
+      <ul>
+        <li>Dùng Chrome hoặc Microsoft Edge trên Windows, macOS hoặc Linux.</li>
+        <li>Không rút cáp USB trong khi đang ghi firmware.</li>
+        <li>Chọn đúng ES3C28P hoặc ES3N28P. Hai mẫu cùng dùng ESP32-S3 nên trình duyệt không tự phân biệt được tên bo.</li>
+        <li>Firmware đầu tiên có thể xóa dữ liệu cấu hình đang lưu trên thiết bị.</li>
+      </ul>
+    </section>
+    <footer>CarCYD Firmware Flasher · Powered by ESP Web Tools</footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
