@@ -39,4 +39,4 @@ ESP32-S3 hỗ trợ Bluetooth LE, không hỗ trợ Bluetooth Classic SPP. Nếu
 ## Nạp fw trực tuyến
 
 Vui lòng truy cập đây để nạp fw mới nhất:
-https://github.com/quocvuong1105/Car-Dashboard-ES3C28P
+https://quocvuong1105.github.io/Car-Dashboard-ES3C28P
