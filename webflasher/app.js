@@ -1,4 +1,3 @@
-```javascript
 const OWNER = "quocvuong1105";
 const REPO = "Car-Dashboard-ES3C28P";
 
