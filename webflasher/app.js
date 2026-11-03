@@ -1,7 +1,12 @@
-
+```javascript
 const OWNER = "quocvuong1105";
 const REPO = "Car-Dashboard-ES3C28P";
-const API = `https://api.github.com/repos/${OWNER}/${REPO}/releases`;
+
+const API =
+  `https://api.github.com/repos/${OWNER}/${REPO}/releases`;
+
+const FIRMWARE_BASE =
+  `./firmware/`;
 
 const releaseSelect = document.querySelector("#release");
 const installer = document.querySelector("#installer");
@@ -22,14 +27,9 @@ function setInfo(message, status = "info") {
 }
 
 function selectedRelease() {
-  return releases.find(r => r.id === Number(releaseSelect.value));
-}
-
-function assetFor(release) {
-  const expected = BOARD_FIRMWARE[selectedBoard];
-  return release?.assets?.find(a =>
-    a.name === expected && a.size > 0
-  ) || null;
+  return releases.find(
+    release => release.id === Number(releaseSelect.value)
+  );
 }
 
 function clearManifest() {
@@ -41,39 +41,56 @@ function clearManifest() {
   }
 }
 
+function firmwareUrlFor(release) {
+  const tag = release.tag_name;
+
+  return new URL(
+    `${FIRMWARE_BASE}${encodeURIComponent(tag)}.bin`,
+    document.baseURI
+  ).href;
+}
+
 function updateManifest() {
   clearManifest();
 
   const release = selectedRelease();
-  const asset = assetFor(release);
 
   if (!release) {
     setInfo("Chưa chọn phiên bản firmware.", "warning");
     return;
   }
 
+  const expected = BOARD_FIRMWARE[selectedBoard];
+
+  const asset = release.assets?.find(
+    item => item.name === expected && item.size > 0
+  );
+
   if (!asset) {
     setInfo(
-      `Release ${release.tag_name} chưa có file ${BOARD_FIRMWARE[selectedBoard]}.`,
+      `Release ${release.tag_name} chưa có file ${expected}.`,
       "warning"
     );
     return;
   }
 
+  const firmwareUrl = firmwareUrlFor(release);
+
   const manifest = {
     name: `Car Dashboard ${selectedBoard}`,
     version: release.tag_name,
     new_install_prompt_erase: true,
-    builds: [{
-      chipFamily: "ESP32-S3",
-      parts: [{
-        path: new URL(
-          `./firmware/${encodeURIComponent(asset.name)}`,
-          location.href
-        ).href,
-        offset: 0
-      }]
-    }]
+    builds: [
+      {
+        chipFamily: "ESP32-S3",
+        parts: [
+          {
+            path: firmwareUrl,
+            offset: 0
+          }
+        ]
+      }
+    ]
   };
 
   const blob = new Blob(
@@ -95,6 +112,7 @@ function updateManifest() {
 async function loadReleases() {
   releaseSelect.disabled = true;
   note.textContent = "Đang kết nối GitHub Releases...";
+
   clearManifest();
 
   try {
@@ -117,15 +135,21 @@ async function loadReleases() {
         );
       }
 
-      throw new Error(`GitHub API lỗi HTTP ${response.status}.`);
+      throw new Error(
+        `GitHub API lỗi HTTP ${response.status}.`
+      );
     }
 
     const data = await response.json();
 
     releases = data
-      .filter(r => !r.draft && !r.prerelease)
+      .filter(release =>
+        !release.draft &&
+        !release.prerelease
+      )
       .sort((a, b) =>
-        new Date(b.published_at) - new Date(a.published_at)
+        new Date(b.published_at) -
+        new Date(a.published_at)
       );
 
     releaseSelect.innerHTML = "";
@@ -138,11 +162,12 @@ async function loadReleases() {
 
     releases.forEach(release => {
       const option = document.createElement("option");
+
       option.value = release.id;
       option.textContent =
-        `${release.tag_name} · ${new Date(
-          release.published_at
-        ).toLocaleDateString("vi-VN")}`;
+        `${release.tag_name} · ${
+          new Date(release.published_at).toLocaleDateString("vi-VN")
+        }`;
 
       releaseSelect.appendChild(option);
     });
@@ -156,6 +181,7 @@ async function loadReleases() {
 
   } catch (error) {
     releases = [];
+
     releaseSelect.innerHTML = "";
     releaseSelect.appendChild(
       new Option("Không có phiên bản khả dụng", "")
@@ -166,13 +192,19 @@ async function loadReleases() {
   }
 }
 
-releaseSelect.addEventListener("change", updateManifest);
+releaseSelect.addEventListener(
+  "change",
+  updateManifest
+);
 
-document.querySelectorAll('input[name="board"]').forEach(input => {
-  input.addEventListener("change", () => {
-    selectedBoard = input.value;
-    updateManifest();
+document
+  .querySelectorAll('input[name="board"]')
+  .forEach(input => {
+    input.addEventListener("change", () => {
+      selectedBoard = input.value;
+      updateManifest();
+    });
   });
-});
 
 loadReleases();
+```
