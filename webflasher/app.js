@@ -295,3 +295,52 @@ async function loadReleases() {
         ? new Date(
             release.published_at
           ).to
+      ).toLocaleDateString("vi-VN")
+    : "";
+
+  option.textContent =
+    `${release.tag_name} · ${publishedDate}`;
+
+  releaseSelect.appendChild(option);
+});
+
+releaseSelect.value = String(releases[0].id);
+releaseSelect.disabled = false;
+
+note.textContent =
+  `Tìm thấy ${releases.length} phiên bản.`;
+
+await updateManifest();
+
+} catch (error) {
+  console.error("[Car Dashboard] Load releases error:", error);
+
+  releases = [];
+  releaseSelect.innerHTML = "";
+
+  releaseSelect.appendChild(
+    new Option("Không có phiên bản khả dụng", "")
+  );
+
+  releaseSelect.disabled = true;
+
+  setInfo(error.message, "error");
+  note.textContent = error.message;
+}
+}
+
+releaseSelect.addEventListener("change", updateManifest);
+
+document
+  .querySelectorAll('input[name="board"]')
+  .forEach(input => {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+
+      selectedBoard = input.value;
+      updateManifest();
+    });
+  });
+
+initializeFlasher();
+loadReleases();
