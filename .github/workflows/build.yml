@@ -1,13 +1,13 @@
-
 name: Release Firmware
 
 on:
   workflow_dispatch:
     inputs:
-      version:v1.0.0
+      version:
         description: "Firmware version (example: v1.0.0)"
         required: true
         type: string
+        default: "v1.0.0"
       release_notes:
         description: "Release notes"
         required: true
@@ -37,6 +37,13 @@ jobs:
             echo "Use format v1.0.0"
             exit 1
           fi
+
+      - name: Check repository structure
+        run: |
+          echo "Repository structure:"
+          ls -la
+          echo "Arduino sketch files:"
+          find . -name "*.ino" -type f
 
       - name: Install Arduino CLI
         uses: arduino/setup-arduino-cli@v2
@@ -85,7 +92,6 @@ jobs:
           cp "$MERGED_FILE" \
             firmware-release/CarCYD-ES3C28P-merged.bin
 
-          echo "Firmware prepared:"
           ls -lh firmware-release/
 
       - name: Upload firmware artifact
