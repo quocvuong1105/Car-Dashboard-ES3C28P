@@ -39,6 +39,24 @@ jobs:
             exit 1
           fi
 
+      - name: Check existing version tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if git ls-remote --exit-code --refs origin "refs/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "ERROR: Tag ${VERSION} already exists."
+            echo "Please use a new version."
+            exit 1
+          else
+            RESULT=$?
+            if [ "$RESULT" -ne 2 ]; then
+              echo "ERROR: Could not check remote tags."
+              exit 1
+            fi
+          fi
+
+          echo "Version ${VERSION} is available."
+
       - name: Find Arduino sketch
         id: sketch
         shell: bash
@@ -55,17 +73,10 @@ jobs:
           fi
 
           SKETCH_DIR=$(dirname "${FILES[0]}")
-          SKETCH_NAME=$(basename "${FILES[0]}" .ino)
-
-          if [ "$(basename "$SKETCH_DIR")" != "$SKETCH_NAME" ]; then
-            echo "Sketch folder must match .ino filename."
-            echo "Folder: $SKETCH_DIR"
-            echo "File: ${FILES[0]}"
-            exit 1
-          fi
 
           echo "dir=$SKETCH_DIR" >> "$GITHUB_OUTPUT"
-          echo "Sketch: ${FILES[0]}"
+          echo "Sketch directory: $SKETCH_DIR"
+          echo "Sketch file: ${FILES[0]}"
 
       - name: Install Arduino CLI
         uses: arduino/setup-arduino-cli@v2
@@ -99,12 +110,15 @@ jobs:
 
       - name: Prepare merged firmware
         run: |
+          echo "Generated firmware files:"
+          find firmware-output -type f \
+            -printf '%f %s bytes\n'
+
           MERGED_FILE=$(find firmware-output \
             -type f -name "*.merged.bin" -print -quit)
 
           if [ -z "$MERGED_FILE" ]; then
             echo "ERROR: merged firmware not found!"
-            find firmware-output -type f
             exit 1
           fi
 
@@ -113,6 +127,7 @@ jobs:
           cp "$MERGED_FILE" \
             firmware-release/CarCYD-ES3C28P-merged.bin
 
+          echo "Prepared firmware:"
           ls -lh firmware-release/
 
       - name: Upload firmware artifact
