@@ -122,11 +122,6 @@
   "SET_SYSTEM": "System",
   "SET_ABOUT": "About",
   "SET_BRIGHTNESS": "Brightness",
-  "SET_AUTO_BRIGHTNESS": "Auto brightness",
-  "SET_AUTO_BRIGHTNESS_SUB": "Uses the ambient light sensor",
-  "SET_DAY_BRIGHTNESS": "Day brightness",
-  "SET_NIGHT_BRIGHTNESS": "Night brightness",
-  "SET_AMBIENT": "Ambient light",
   "SET_FLIP": "Rotate screen 180°",
   "SET_MIRROR": "Mirror horizontally",
   "SET_MIRROR_SUB": "Flip the displayed image left to right. Hold the screen for 5 seconds to turn Mirror off.",
@@ -195,5 +190,10 @@
   "ALERT_LINK": "Vehicle connection lost",
   "ALERT_LINK_TEXT": "Check the vehicle interface",
   "ALERT_TAP_HINT": "Tap to dismiss",
-  "SETTINGS_RESTORED": "Settings restored to defaults"
+  "SETTINGS_RESTORED": "Settings restored to defaults",
+  "SET_DISPLAY_MODE": "Display Mode",
+  "DISPLAY_LIGHT": "Light",
+  "DISPLAY_DARK": "Dark",
+  "DISPLAY_FOLLOW_VEHICLE": "Follow Vehicle",
+  "DISPLAY_FOLLOW_UNAVAILABLE": "Vehicle light status is not available from the current data connection."
 }
