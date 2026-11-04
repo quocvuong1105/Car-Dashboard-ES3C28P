@@ -28,4 +28,10 @@ void apply_calibration(const core::TouchCalibration& cal);
 
 void set_enabled(bool enabled);
 
+/** True while a finger is on the panel; used by UI idle and hold gestures. */
+bool pressed();
+uint32_t last_activity_ms();
+/** Returns true once for each uninterrupted five-second hold. */
+bool take_five_second_hold();
+
 }  // namespace hal::touch
