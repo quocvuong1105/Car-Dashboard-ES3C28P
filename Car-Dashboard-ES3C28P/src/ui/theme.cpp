@@ -4,16 +4,19 @@
 
 namespace ui {
 namespace color {
+namespace {
+bool light_mode() { return core::settings::get().display_mode == core::DisplayMode::Light; }
+}  // namespace
 
-lv_color_t bg() { return lv_color_hex(0x06080C); }
-lv_color_t surface() { return lv_color_hex(0x0C1016); }
-lv_color_t card() { return lv_color_hex(0x131922); }
-lv_color_t card_hi() { return lv_color_hex(0x1C2430); }
-lv_color_t stroke() { return lv_color_hex(0x232C39); }
-lv_color_t track() { return lv_color_hex(0x1A212B); }
-lv_color_t text() { return lv_color_hex(0xE9EEF4); }
-lv_color_t text_dim() { return lv_color_hex(0x8B97A7); }
-lv_color_t text_faint() { return lv_color_hex(0x4F5B6C); }
+lv_color_t bg() { return lv_color_hex(light_mode() ? 0xF2F4F7 : 0x06080C); }
+lv_color_t surface() { return lv_color_hex(light_mode() ? 0xFFFFFF : 0x0C1016); }
+lv_color_t card() { return lv_color_hex(light_mode() ? 0xFFFFFF : 0x131922); }
+lv_color_t card_hi() { return lv_color_hex(light_mode() ? 0xE8EDF2 : 0x1C2430); }
+lv_color_t stroke() { return lv_color_hex(light_mode() ? 0xD4DAE1 : 0x232C39); }
+lv_color_t track() { return lv_color_hex(light_mode() ? 0xDCE2E8 : 0x1A212B); }
+lv_color_t text() { return lv_color_hex(light_mode() ? 0x17202B : 0xE9EEF4); }
+lv_color_t text_dim() { return lv_color_hex(light_mode() ? 0x586575 : 0x8B97A7); }
+lv_color_t text_faint() { return lv_color_hex(light_mode() ? 0x8491A0 : 0x4F5B6C); }
 lv_color_t ok() { return lv_color_hex(0x2ED47A); }
 lv_color_t info() { return lv_color_hex(0x3DA5FF); }
 lv_color_t warn() { return lv_color_hex(0xFFB020); }
@@ -48,7 +51,7 @@ lv_color_t severity_accent(core::Severity s) { return s == core::Severity::Norma
 }  // namespace color
 
 void theme_apply(lv_display_t* display) {
-  lv_theme_t* theme = lv_theme_default_init(display, color::accent(), color::info(), true, font::body());
+  lv_theme_t* theme = lv_theme_default_init(display, color::accent(), color::info(), !color::light_mode(), font::body());
   lv_display_set_theme(display, theme);
 }
 
