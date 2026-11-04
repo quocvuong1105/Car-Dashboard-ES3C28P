@@ -90,15 +90,6 @@ void init() {
   lv_obj_set_width(g_text, lv_pct(100));
 }
 
-void set_full_width(bool full_width) {
-  if (g_root == nullptr) return;
-  const int32_t width = full_width ? layout::kScreenW - 2 * layout::kPad
-                                   : layout::kContentW - 2 * layout::kPad;
-  const int32_t x = full_width ? layout::kPad : layout::kRailW + layout::kPad;
-  lv_obj_set_pos(g_root, x, lv_obj_get_y(g_root));
-  lv_obj_set_width(g_root, width);
-}
-
 void deinit() {
   if (g_root == nullptr) return;
   lv_anim_delete(g_root, nullptr);
