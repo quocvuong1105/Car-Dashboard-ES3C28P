@@ -56,7 +56,7 @@ void NavRail::create(lv_obj_t* parent, SelectFn on_select) {
   }
 }
 
-void NavRail::set_visible(bool visible) { set_visible(root_, visible); }
+void NavRail::set_visible(bool visible) { ui::set_visible(root_, visible); }
 
 void NavRail::set_active(PageId page) {
   for (int i = 0; i < kItems; ++i) {
