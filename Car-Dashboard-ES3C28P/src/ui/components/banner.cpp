@@ -23,6 +23,17 @@ uint32_t g_duration = 0;
 uint32_t g_shown_at = 0;
 bool g_visible = false;
 int g_owner = -1;
+bool g_navigation_hidden = false;
+
+void update_layout() {
+  if (g_root == nullptr) return;
+  const int32_t width = g_navigation_hidden
+                            ? layout::kScreenW - 2 * layout::kPad
+                            : layout::kContentW - 2 * layout::kPad;
+  const int32_t x = g_navigation_hidden ? layout::kPad : layout::kRailW + layout::kPad;
+  lv_obj_set_width(g_root, width);
+  lv_obj_set_x(g_root, x);
+}
 
 void anim_y_cb(void* obj, int32_t v) { lv_obj_set_y(static_cast<lv_obj_t*>(obj), v); }
 
@@ -56,6 +67,7 @@ void init() {
   lv_obj_remove_style_all(g_root);
   lv_obj_set_size(g_root, layout::kContentW - 2 * layout::kPad, kHeight);
   lv_obj_set_pos(g_root, layout::kRailW + layout::kPad, kHiddenY);
+  update_layout();
   lv_obj_set_style_bg_color(g_root, color::card_hi(), 0);
   lv_obj_set_style_bg_opa(g_root, LV_OPA_COVER, 0);
   lv_obj_set_style_radius(g_root, layout::kRadius, 0);
@@ -132,6 +144,11 @@ void hide() {
   g_visible = false;
   g_owner = -1;
   slide(kHiddenY, true);
+}
+
+void set_navigation_hidden(bool hidden) {
+  g_navigation_hidden = hidden;
+  update_layout();
 }
 
 bool visible() { return g_visible; }
