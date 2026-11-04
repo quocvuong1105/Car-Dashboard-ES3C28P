@@ -29,6 +29,10 @@ bool g_enabled = true;
 uint8_t g_press_count = 0;
 lv_point_t g_last{0, 0};
 bool g_i2c_ready = false;
+bool g_pressed = false;
+bool g_hold_fired = false;
+uint32_t g_press_started_ms = 0;
+uint32_t g_last_activity_ms = 0;
 
 bool read_registers(uint8_t reg, uint8_t* data, size_t len) {
   if (!g_i2c_ready) return false;
@@ -67,16 +71,31 @@ core::TouchCalibration active_calibration() {
 void read_cb(lv_indev_t*, lv_indev_data_t* data) {
   int32_t x = 0, y = 0;
   const bool pressed = g_enabled && read_landscape_point(x, y);
+  const uint32_t now = millis();
   if (!pressed) {
     g_press_count = 0;
+    g_pressed = false;
+    g_hold_fired = false;
     data->state = LV_INDEV_STATE_RELEASED;
     data->point = g_last;
     return;
   }
+  if (!g_pressed) {
+    g_pressed = true;
+    g_press_started_ms = now;
+    g_hold_fired = false;
+  }
+  g_last_activity_ms = now;
   if (g_press_count < kPressDebounce) ++g_press_count;
   const core::TouchPoint mapped = active_calibration().map(x, y);
-  g_last.x = core::clamp<int32_t>(mapped.x, 0, lcd().width() - 1);
-  g_last.y = core::clamp<int32_t>(mapped.y, 0, lcd().height() - 1);
+  int32_t mapped_x = mapped.x;
+  int32_t mapped_y = mapped.y;
+  if (display::mirrored()) {
+    if (display::flipped()) mapped_y = lcd().height() - 1 - mapped_y;
+    else mapped_x = lcd().width() - 1 - mapped_x;
+  }
+  g_last.x = core::clamp<int32_t>(mapped_x, 0, lcd().width() - 1);
+  g_last.y = core::clamp<int32_t>(mapped_y, 0, lcd().height() - 1);
   data->point = g_last;
   data->state = g_press_count >= kPressDebounce ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
 }
@@ -148,6 +167,18 @@ void apply_calibration(const core::TouchCalibration& cal) {
 void set_enabled(bool enabled) {
   g_enabled = enabled;
   g_press_count = 0;
+  g_pressed = false;
+  g_hold_fired = false;
   if (g_indev != nullptr) lv_indev_reset(g_indev, nullptr);
+}
+
+bool pressed() { return g_pressed; }
+
+uint32_t last_activity_ms() { return g_last_activity_ms; }
+
+bool take_five_second_hold() {
+  if (!g_pressed || g_hold_fired || !display::mirrored() || millis() - g_press_started_ms < 5000) return false;
+  g_hold_fired = true;
+  return true;
 }
 }  // namespace hal::touch
