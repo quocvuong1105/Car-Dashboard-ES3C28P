@@ -14,13 +14,24 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 FONT_DIR = ROOT / "src" / "ui" / "fonts"
-BARLOW_REV = "dc2940e2e04ef4ec96c07e23e0f02aefbddd343b"
+# Use the exact Barlow TTF files from the upstream Car Dashboard source.
+# These are the files used to generate the committed Latin glyph bitmaps.
+BARLOW_SOURCE_REV = "a87aa340da64a05fbe4e42f36ebc16fdfac8b8db"
 MDI_REV = "57b567a448bd579892174cd47c47f9e187ea56c6"
 
 BARLOW_FILES = {
-    "medium": f"https://raw.githubusercontent.com/jpt/barlow/{BARLOW_REV}/fonts/ttf/BarlowSemiCondensed-Medium.ttf",
-    "semibold": f"https://raw.githubusercontent.com/jpt/barlow/{BARLOW_REV}/fonts/ttf/BarlowSemiCondensed-SemiBold.ttf",
-    "condensed_semibold": f"https://raw.githubusercontent.com/jpt/barlow/{BARLOW_REV}/fonts/ttf/BarlowCondensed-SemiBold.ttf",
+    "medium": (
+        "https://raw.githubusercontent.com/muki01/Car-Dashboard-ESP32-CYD/"
+        f"{BARLOW_SOURCE_REV}/tools/fonts/ttf/BarlowSemiCondensed-Medium.ttf"
+    ),
+    "semibold": (
+        "https://raw.githubusercontent.com/muki01/Car-Dashboard-ESP32-CYD/"
+        f"{BARLOW_SOURCE_REV}/tools/fonts/ttf/BarlowSemiCondensed-SemiBold.ttf"
+    ),
+    "condensed_semibold": (
+        "https://raw.githubusercontent.com/muki01/Car-Dashboard-ESP32-CYD/"
+        f"{BARLOW_SOURCE_REV}/tools/fonts/ttf/BarlowCondensed-SemiBold.ttf"
+    ),
 }
 MDI_URL = (
     "https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/"
