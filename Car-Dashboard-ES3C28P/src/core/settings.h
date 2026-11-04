@@ -60,7 +60,9 @@ struct Settings {
   uint8_t dash_view;
   SignalId corner_slots[kCornerSlots];
   SignalId gauge_slots[kGaugeSlots];
-  // Appended fields preserve the existing persisted layout.
+  // Consume the previous struct's 2-byte tail padding so new settings start
+  // beyond the complete v1 payload. Old padding must never be read as bools.
+  uint16_t reserved_v2;
   bool mirror_screen;
   bool auto_hide_menu;
 };
