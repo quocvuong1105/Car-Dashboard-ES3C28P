@@ -200,7 +200,7 @@ const char* const kEnglish[] = {
   "Tap to dismiss",
   "Settings restored to defaults",
 };
-static_assert(sizeof(kEnglish) / sizeof(kEnglish[0]) == static_cast<unsigned>(core::Str::Count), "kEnglish catalog size");
+static_assert(sizeof(kEnglish) / sizeof(kEnglish[0]) == static_cast<unsigned>(core::Str::Count), "en catalog size");
 const char* const kTurkish[] = {
   "Araç Gösterge Paneli",
   "Tamam",
@@ -400,7 +400,7 @@ const char* const kTurkish[] = {
   "Kapatmak için dokunun",
   "Ayarlar varsayılana döndü",
 };
-static_assert(sizeof(kTurkish) / sizeof(kTurkish[0]) == static_cast<unsigned>(core::Str::Count), "kTurkish catalog size");
+static_assert(sizeof(kTurkish) / sizeof(kTurkish[0]) == static_cast<unsigned>(core::Str::Count), "tr catalog size");
 const char* const kVietnamese[] = {
   "Bảng điều khiển xe",
   "Đồng ý",
@@ -600,5 +600,5 @@ const char* const kVietnamese[] = {
   "Chạm để đóng",
   "Đã khôi phục cài đặt mặc định",
 };
-static_assert(sizeof(kVietnamese) / sizeof(kVietnamese[0]) == static_cast<unsigned>(core::Str::Count), "kVietnamese catalog size");
+static_assert(sizeof(kVietnamese) / sizeof(kVietnamese[0]) == static_cast<unsigned>(core::Str::Count), "vi catalog size");
 }
