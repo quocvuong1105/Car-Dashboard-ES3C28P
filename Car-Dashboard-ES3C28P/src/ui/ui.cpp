@@ -126,6 +126,7 @@ void refresh_alert_banner(uint32_t now_ms) {
 
 void show_navigation(bool keep_touch_blocker) {
   g.menu_hidden = false;
+  banner::set_navigation_hidden(false);
   g.rail.set_visible(true);
   g.status.set_visible(true);
   lv_obj_set_pos(g.content, layout::kRailW, layout::kStatusH);
@@ -139,6 +140,7 @@ void show_navigation(bool keep_touch_blocker) {
 void hide_navigation() {
   if (!core::settings::get().auto_hide_menu || g.menu_hidden) return;
   g.menu_hidden = true;
+  banner::set_navigation_hidden(true);
   // Hide the complete navigation chrome: left rail and top title/status bar.
   g.rail.set_visible(false);
   g.status.set_visible(false);
