@@ -110,6 +110,14 @@ void on_flip(lv_event_t* e) {
   edit().flip_screen = switch_on(e);
   commit(chg::kChangeOrientation);
 }
+void on_mirror(lv_event_t* e) {
+  edit().mirror_screen = switch_on(e);
+  commit(chg::kChangeMirror);
+}
+void on_auto_hide_menu(lv_event_t* e) {
+  edit().auto_hide_menu = switch_on(e);
+  commit(chg::kChangeAutoHideMenu);
+}
 void on_accent(lv_event_t* e) {
   const auto accent = static_cast<core::Accent>(reinterpret_cast<intptr_t>(lv_event_get_user_data(e)));
   if (get().accent == accent) return;
@@ -427,6 +435,10 @@ void SettingsPage::build_display(lv_obj_t* list) {
   ambient_label_ = rows::info(list, ICON_BRIGHTNESS, core::tr(core::Str::SET_AMBIENT), "--");
 
   rows::toggle(list, ICON_ROTATE, core::tr(core::Str::SET_FLIP), nullptr, s.flip_screen, on_flip, nullptr);
+  rows::toggle(list, ICON_MIRROR, core::tr(core::Str::SET_MIRROR), core::tr(core::Str::SET_MIRROR_SUB),
+               s.mirror_screen, on_mirror, nullptr);
+  rows::toggle(list, ICON_MENU, core::tr(core::Str::SET_AUTO_HIDE_MENU),
+               core::tr(core::Str::SET_AUTO_HIDE_MENU_SUB), s.auto_hide_menu, on_auto_hide_menu, nullptr);
 
   // Accent colour swatches.
   lv_obj_t* r = card(list);
@@ -530,6 +542,12 @@ void SettingsPage::build_system(lv_obj_t* list) {
 }
 
 void SettingsPage::build_about(lv_obj_t* list) {
+  // Keep About's information list vertically scrollable within the page viewport.
+  lv_obj_set_scrollable(list, true);
+  lv_obj_set_scroll_dir(list, LV_DIR_VER);
+  lv_obj_set_scrollbar_mode(list, LV_SCROLLBAR_MODE_AUTO);
+  lv_obj_set_scroll_snap_y(list, LV_SCROLL_SNAP_NONE);
+
   platform::SystemInfo info;
   platform::system_info(info);
   char buf[48];
