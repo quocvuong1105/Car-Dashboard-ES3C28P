@@ -53,6 +53,7 @@ void sanitize(Settings& s) {
   s.fuel_warn_pct = clamp<uint8_t>(s.fuel_warn_pct, 0, 30);
   if (s.overspeed_kmh != 0) s.overspeed_kmh = clamp<uint16_t>(s.overspeed_kmh, 30, 250);
   s.volume = clamp<uint8_t>(s.volume, 0, 100);
+  s.reserved_v2 = 0;
   s.dash_view = clamp<uint8_t>(s.dash_view, 0, 1);
 
   for (auto& slot : s.corner_slots) slot = sanitize_enum(slot, SignalId::Count, SignalId::CoolantTemp);
