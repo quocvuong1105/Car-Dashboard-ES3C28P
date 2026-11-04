@@ -29,7 +29,7 @@ void StatusBar::create(lv_obj_t* parent, lv_event_cb_t on_back, void* user) {
 
   back_ = icon_button(root_, ICON_BACK, 26, on_back, user);
   lv_obj_set_ext_click_area(back_, 10);
-  set_visible(back_, false);
+  ui::set_visible(back_, false);
 
   title_ = label(root_, font::title(), color::text(), "");
   lv_obj_set_flex_grow(title_, 1);
@@ -41,23 +41,17 @@ void StatusBar::create(lv_obj_t* parent, lv_event_cb_t on_back, void* user) {
   link_ = icon(root_, ICON_LINK_OFF, font::title(), color::text_faint());
   clock_ = label(root_, font::title(), color::text(), "");
 
-  set_visible(mil_, false);
-  set_visible(alert_, false);
-  set_visible(demo_, false);
-  set_visible(clock_, false);
+  ui::set_visible(mil_, false);
+  ui::set_visible(alert_, false);
+  ui::set_visible(demo_, false);
+  ui::set_visible(clock_, false);
 }
 
 void StatusBar::set_title(const char* title) { set_text(title_, title); }
 
-void StatusBar::show_back(bool show) { set_visible(back_, show); }
+void StatusBar::show_back(bool show) { ui::set_visible(back_, show); }
 
-void StatusBar::set_visible(bool visible) { ui::set_visible(root_, visible); }
-
-void StatusBar::set_full_width(bool full_width) {
-  if (root_ == nullptr) return;
-  lv_obj_set_pos(root_, full_width ? 0 : layout::kRailW, 0);
-  lv_obj_set_width(root_, full_width ? layout::kScreenW : layout::kContentW);
-}
+void StatusBar::ui::set_visible(bool visible) { ui::ui::set_visible(root_, visible); }
 
 void StatusBar::update(uint32_t now_ms) {
   if (now_ms - last_update_ms_ < kUpdatePeriodMs) return;
@@ -66,11 +60,11 @@ void StatusBar::update(uint32_t now_ms) {
 
   const core::VehicleState& v = core::vehicle();
 
-  set_visible(mil_, v.dtc.mil_known && v.dtc.mil_on);
+  ui::set_visible(mil_, v.dtc.mil_known && v.dtc.mil_on);
 
   // The check engine light has its own icon; the triangle covers all other alerts.
   const core::Severity alert = core::alerts().highest(false);
-  set_visible(alert_, alert >= core::Severity::Warning);
+  ui::set_visible(alert_, alert >= core::Severity::Warning);
   if (alert >= core::Severity::Warning) {
     // Critical alerts blink to draw attention.
     const bool dim = alert == core::Severity::Critical && blink_;
@@ -97,9 +91,9 @@ void StatusBar::update(uint32_t now_ms) {
       break;
   }
 
-  set_visible(demo_, v.simulated);
+  ui::set_visible(demo_, v.simulated);
 
-  set_visible(clock_, v.clock_valid);
+  ui::set_visible(clock_, v.clock_valid);
   if (v.clock_valid) {
     char buf[8];
     snprintf(buf, sizeof(buf), "%02u:%02u", v.clock_minutes / 60, v.clock_minutes % 60);
