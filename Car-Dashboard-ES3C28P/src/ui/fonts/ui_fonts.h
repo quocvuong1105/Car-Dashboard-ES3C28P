@@ -20,6 +20,11 @@ LV_FONT_DECLARE(ui_font_14)       /* BarlowSemiCondensed-Medium 14px, icons */
 LV_FONT_DECLARE(ui_font_16)       /* BarlowSemiCondensed-SemiBold 16px, icons */
 LV_FONT_DECLARE(ui_font_20)       /* BarlowSemiCondensed-SemiBold 20px, icons */
 LV_FONT_DECLARE(ui_font_28)       /* BarlowSemiCondensed-SemiBold 28px */
+LV_FONT_DECLARE(ui_font_12_vi)    /* Vietnamese-only fallback, 12px */
+LV_FONT_DECLARE(ui_font_14_vi)    /* Vietnamese-only fallback, 14px */
+LV_FONT_DECLARE(ui_font_16_vi)    /* Vietnamese-only fallback, 16px */
+LV_FONT_DECLARE(ui_font_20_vi)    /* Vietnamese-only fallback, 20px */
+LV_FONT_DECLARE(ui_font_28_vi)    /* Vietnamese-only fallback, 28px */
 LV_FONT_DECLARE(ui_font_speed)    /* BarlowCondensed-SemiBold 64px digits */
 LV_FONT_DECLARE(ui_icons_24)      /* icons */
 LV_FONT_DECLARE(ui_icons_48)      /* large icons */
