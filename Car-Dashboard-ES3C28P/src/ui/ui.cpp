@@ -12,6 +12,7 @@
 #include "../core/units.h"
 #include "../core/vehicle_state.h"
 #include "../hal/touch.h"
+#include "../hal/display.h"
 #include "components/banner.h"
 #include "components/dialog.h"
 #include "components/nav_rail.h"
@@ -259,6 +260,7 @@ void rebuild_async(void*) {
 
 void calibration_done() {
   lv_screen_load(g.screen);
+  hal::display::set_mirror(core::settings::get().mirror_screen);
   g.pages[static_cast<int>(g.current)]->on_show();
 }
 
@@ -285,6 +287,9 @@ void start(bool run_touch_calibration) {
   g.started = true;
 
   if (run_touch_calibration) {
+    // Calibration targets must be displayed unmirrored so the stored affine
+    // correction remains independent from the user's Mirror preference.
+    hal::display::set_mirror(false);
     calibration::start(calibration_done);
     lv_obj_delete(splash);
   } else {
@@ -318,7 +323,10 @@ void navigate(PageId id) {
 
 PageId current_page() { return g.current; }
 
-void open_touch_calibration() { calibration::start(calibration_done); }
+void open_touch_calibration() {
+  hal::display::set_mirror(false);
+  calibration::start(calibration_done);
+}
 
 void request_rebuild() {
   if (g.rebuild_pending) return;
