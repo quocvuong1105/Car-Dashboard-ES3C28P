@@ -60,11 +60,33 @@ lv_color_t severity_accent(core::Severity severity);
 
 // ---- Typography -------------------------------------------------------------------------
 namespace font {
-inline const lv_font_t* caption() { return &ui_font_12; }  ///< units, captions
-inline const lv_font_t* body() { return &ui_font_14; }     ///< list text
-inline const lv_font_t* title() { return &ui_font_16; }    ///< titles, buttons
-inline const lv_font_t* value() { return &ui_font_20; }    ///< tile values
-inline const lv_font_t* large() { return &ui_font_28; }    ///< hero values
+// Preserve the committed Latin/icon font objects; attach only Vietnamese glyph
+// fallbacks through mutable descriptors with identical primary font metrics.
+inline const lv_font_t* caption() {
+  static lv_font_t font = ui_font_12;
+  font.fallback = &ui_font_12_vi;
+  return &font;
+}  ///< units, captions
+inline const lv_font_t* body() {
+  static lv_font_t font = ui_font_14;
+  font.fallback = &ui_font_14_vi;
+  return &font;
+}  ///< list text
+inline const lv_font_t* title() {
+  static lv_font_t font = ui_font_16;
+  font.fallback = &ui_font_16_vi;
+  return &font;
+}  ///< titles, buttons
+inline const lv_font_t* value() {
+  static lv_font_t font = ui_font_20;
+  font.fallback = &ui_font_20_vi;
+  return &font;
+}  ///< tile values
+inline const lv_font_t* large() {
+  static lv_font_t font = ui_font_28;
+  font.fallback = &ui_font_28_vi;
+  return &font;
+}  ///< hero values
 inline const lv_font_t* speed() { return &ui_font_speed; } ///< speedometer digits
 inline const lv_font_t* icon24() { return &ui_icons_24; }
 inline const lv_font_t* icon48() { return &ui_icons_48; }

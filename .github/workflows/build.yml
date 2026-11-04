@@ -19,6 +19,17 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Install Node.js for LVGL font generation
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.11.1"
+
+      - name: Install LVGL font converter
+        run: npm install --global lv_font_conv@1.5.3
+
+      - name: Rebuild LVGL fonts with Vietnamese glyphs
+        run: python3 Car-Dashboard-ES3C28P/tools/fonts/generate_fonts.py
+
       - name: Find Arduino sketch
         id: sketch
         shell: bash
@@ -38,7 +49,7 @@ jobs:
           SKETCH_NAME=$(basename "${FILES[0]}" .ino)
 
           if [ "$(basename "$SKETCH_DIR")" != "$SKETCH_NAME" ]; then
-            echo "Sketch folder must match .ino filename."
+            echo "Sketch folder must match .ino file."
             echo "Folder: $SKETCH_DIR"
             echo "File: ${FILES[0]}"
             exit 1
