@@ -125,11 +125,6 @@ const char* const kEnglish[] = {
   "System",
   "About",
   "Brightness",
-  "Auto brightness",
-  "Uses the ambient light sensor",
-  "Day brightness",
-  "Night brightness",
-  "Ambient light",
   "Rotate screen 180°",
   "Mirror horizontally",
   "Flip the displayed image left to right. Hold the screen for 5 seconds to turn Mirror off.",
@@ -199,6 +194,11 @@ const char* const kEnglish[] = {
   "Check the vehicle interface",
   "Tap to dismiss",
   "Settings restored to defaults",
+  "Display Mode",
+  "Light",
+  "Dark",
+  "Follow Vehicle",
+  "Vehicle light status is not available from the current data connection.",
 };
 static_assert(sizeof(kEnglish) / sizeof(kEnglish[0]) == static_cast<unsigned>(core::Str::Count), "en catalog size");
 const char* const kTurkish[] = {
@@ -325,11 +325,6 @@ const char* const kTurkish[] = {
   "Sistem",
   "Hakkında",
   "Parlaklık",
-  "Otomatik parlaklık",
-  "Ortam ışığı sensörünü kullanır",
-  "Gündüz parlaklığı",
-  "Gece parlaklığı",
-  "Ortam ışığı",
   "Ekranı 180° döndür",
   "Yatay aynalama",
   "Görüntüyü soldan sağa çevirir. Aynalamayı kapatmak için ekrana 5 saniye basılı tutun.",
@@ -399,6 +394,11 @@ const char* const kTurkish[] = {
   "Araç arayüzünü kontrol edin",
   "Kapatmak için dokunun",
   "Ayarlar varsayılana döndü",
+  "Görüntü Modu",
+  "Açık",
+  "Koyu",
+  "Aracı Takip Et",
+  "Araç aydınlatma durumu mevcut veri bağlantısından alınamıyor.",
 };
 static_assert(sizeof(kTurkish) / sizeof(kTurkish[0]) == static_cast<unsigned>(core::Str::Count), "tr catalog size");
 const char* const kVietnamese[] = {
@@ -525,11 +525,6 @@ const char* const kVietnamese[] = {
   "Hệ thống",
   "Thông tin",
   "Độ sáng",
-  "Độ sáng tự động",
-  "Sử dụng cảm biến ánh sáng môi trường",
-  "Độ sáng ban ngày",
-  "Độ sáng ban đêm",
-  "Ánh sáng môi trường",
   "Xoay màn hình 180°",
   "Lật ngang màn hình",
   "Lật hình ảnh từ trái sang phải. Giữ màn hình 5 giây để tắt chế độ lật.",
@@ -599,6 +594,11 @@ const char* const kVietnamese[] = {
   "Kiểm tra bộ giao tiếp với xe",
   "Chạm để đóng",
   "Đã khôi phục cài đặt mặc định",
+  "Chế độ hiển thị",
+  "Sáng",
+  "Tối",
+  "Theo đèn xe",
+  "Kết nối dữ liệu hiện tại chưa cung cấp trạng thái đèn xe.",
 };
 static_assert(sizeof(kVietnamese) / sizeof(kVietnamese[0]) == static_cast<unsigned>(core::Str::Count), "vi catalog size");
 }
