@@ -17,6 +17,8 @@ namespace ui::banner {
 using TapFn = void (*)(void* user);
 
 void init();
+/** Expands the banner into the navigation rail area when auto-hide is active. */
+void set_full_width(bool full_width);
 void deinit();
 
 /**
