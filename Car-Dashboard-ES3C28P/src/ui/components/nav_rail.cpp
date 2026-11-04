@@ -14,6 +14,7 @@ void NavRail::create(lv_obj_t* parent, SelectFn on_select) {
   on_select_ = on_select;
 
   lv_obj_t* rail = box(parent);
+  root_ = rail;
   lv_obj_set_pos(rail, 0, 0);
   lv_obj_set_size(rail, layout::kRailW, layout::kScreenH);
   lv_obj_set_style_bg_color(rail, color::surface(), 0);
@@ -54,6 +55,8 @@ void NavRail::create(lv_obj_t* parent, SelectFn on_select) {
     set_visible(badges_[i], false);
   }
 }
+
+void NavRail::set_visible(bool visible) { set_visible(root_, visible); }
 
 void NavRail::set_active(PageId page) {
   for (int i = 0; i < kItems; ++i) {
