@@ -389,7 +389,9 @@ void SettingsPage::update_live_values(uint32_t now_ms) {
   if (memory_label_ != nullptr) {
     platform::SystemInfo info;
     platform::system_info(info);
-    snprintf(buf, sizeof(buf), "%lu KB (min %lu KB)", static_cast<unsigned long>(info.heap_free / 1024),
+    snprintf(buf, sizeof(buf), "%lu KB total · %lu KB free · %lu KB min",
+             static_cast<unsigned long>(info.heap_total / 1024),
+             static_cast<unsigned long>(info.heap_free / 1024),
              static_cast<unsigned long>(info.heap_min_free / 1024));
     set_text(memory_label_, buf);
   }
@@ -543,11 +545,11 @@ void SettingsPage::build_about(lv_obj_t* list) {
   rows::info(list, ICON_HISTORY, core::tr(core::Str::ABOUT_BUILD), __DATE__);
   rows::info(list, ICON_CHIP, core::tr(core::Str::ABOUT_BOARD), info.board_name);
   rows::info(list, ICON_DASHBOARD, core::tr(core::Str::ABOUT_DISPLAY), info.panel_name);
-  snprintf(buf, sizeof(buf), "%s · %lu MHz", info.chip_model, static_cast<unsigned long>(info.cpu_mhz));
+  snprintf(buf, sizeof(buf), "Xtensa LX7 · %lu MHz", static_cast<unsigned long>(info.cpu_mhz));
   rows::info(list, ICON_CHIP, core::tr(core::Str::ABOUT_CHIP), buf);
   snprintf(buf, sizeof(buf), "%lu MB", static_cast<unsigned long>(info.flash_bytes / (1024 * 1024)));
   rows::info(list, ICON_DATABASE, core::tr(core::Str::ABOUT_FLASH), buf);
-  memory_label_ = rows::info(list, ICON_MEMORY, core::tr(core::Str::ABOUT_MEMORY), "");
+  memory_label_ = rows::info(list, ICON_MEMORY, "Memory RAM", "");
   uptime_label_ = rows::info(list, ICON_TIMER, core::tr(core::Str::ABOUT_UPTIME), "");
   snprintf(buf, sizeof(buf), "LVGL %d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
   rows::info(list, ICON_PALETTE, core::tr(core::Str::ABOUT_GRAPHICS), buf);
