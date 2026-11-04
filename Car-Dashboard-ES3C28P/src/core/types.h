@@ -56,6 +56,7 @@ enum class SpeedUnit : uint8_t { Kmh = 0, Mph, Count };
 enum class TempUnit : uint8_t { Celsius = 0, Fahrenheit, Count };
 enum class PressureUnit : uint8_t { Kpa = 0, Bar, Psi, Count };
 enum class Accent : uint8_t { Cyan = 0, Amber, Red, Green, Violet, Count };
+enum class DisplayMode : uint8_t { Light = 0, Dark, FollowVehicle, Count };
 
 /** State of the connection to the vehicle interface. */
 enum class LinkState : uint8_t { Disconnected = 0, Connecting, Connected, Error };
