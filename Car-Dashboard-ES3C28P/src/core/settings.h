@@ -65,9 +65,10 @@ struct Settings {
   uint16_t reserved_v2;
   bool mirror_screen;
   bool auto_hide_menu;
+  DisplayMode display_mode;  ///< Light, Dark or vehicle-following theme (v3)
 };
 
-constexpr uint16_t kSettingsVersion = 2;
+constexpr uint16_t kSettingsVersion = 3;
 
 namespace settings {
 
