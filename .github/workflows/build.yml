@@ -1,6 +1,10 @@
 name: Build LCDWiki ES3C28P
 
 on:
+  push:
+    branches: [main, feature/modular-i18n-crowdin]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -63,6 +67,9 @@ jobs:
           arduino-cli lib update-index
           arduino-cli lib install "lvgl@9.6.0"
           arduino-cli lib install LovyanGFX
+
+      - name: Validate and generate translation catalogs
+        run: python3 Car-Dashboard-ES3C28P/tools/i18n/generate_translations.py
 
       - name: Compile firmware
         run: |

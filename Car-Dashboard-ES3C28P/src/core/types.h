@@ -51,7 +51,7 @@ enum class Quantity : uint8_t {
 /** Severity of a value or an alert. `Info` is also used for "cold"/"low" hints. */
 enum class Severity : uint8_t { Normal = 0, Info, Warning, Critical };
 
-enum class Language : uint8_t { English = 0, Turkish, Count };
+enum class Language : uint8_t { English = 0, Turkish, Vietnamese, Count };
 enum class SpeedUnit : uint8_t { Kmh = 0, Mph, Count };
 enum class TempUnit : uint8_t { Celsius = 0, Fahrenheit, Count };
 enum class PressureUnit : uint8_t { Kpa = 0, Bar, Psi, Count };

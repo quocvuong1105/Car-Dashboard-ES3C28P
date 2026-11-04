@@ -1,49 +1,30 @@
 #include "i18n.h"
-
-#include <stddef.h>
-
 namespace core::i18n {
 namespace {
-
-// clang-format off
-const char* const kEnglish[] = {
-#define I18N_EN(id, en, tr) en,
-  I18N_STRINGS(I18N_EN)
-#undef I18N_EN
-};
-
-const char* const kTurkish[] = {
-#define I18N_TR(id, en, tr) tr,
-  I18N_STRINGS(I18N_TR)
-#undef I18N_TR
-};
-// clang-format on
-
-static_assert(sizeof(kEnglish) / sizeof(kEnglish[0]) == static_cast<size_t>(Str::Count), "string table size");
-static_assert(sizeof(kTurkish) / sizeof(kTurkish[0]) == static_cast<size_t>(Str::Count), "string table size");
-
 Language g_language = Language::English;
-
-}  // namespace
-
+const char* const* active_catalog() {
+  switch (g_language) {
+    case Language::Turkish: return i18n_generated::kTurkish;
+    case Language::Vietnamese: return i18n_generated::kVietnamese;
+    case Language::English:
+    default: return i18n_generated::kEnglish;
+  }
+}
+}
 void set_language(Language lang) {
-  g_language = (lang < Language::Count) ? lang : Language::English;
+  g_language = static_cast<uint8_t>(lang) < static_cast<uint8_t>(Language::Count) ? lang : Language::English;
 }
-
 Language language() { return g_language; }
-
 const char* get(Str id) {
-  const auto index = static_cast<uint16_t>(id);
-  if (index >= static_cast<uint16_t>(Str::Count)) return "";
-  return (g_language == Language::Turkish) ? kTurkish[index] : kEnglish[index];
+  const uint16_t index = static_cast<uint16_t>(id);
+  return index < static_cast<uint16_t>(Str::Count) ? active_catalog()[index] : "";
 }
-
 const char* language_name(Language lang) {
   switch (lang) {
     case Language::Turkish: return "Türkçe";
+    case Language::Vietnamese: return "Tiếng Việt";
     case Language::English:
     default: return "English";
   }
 }
-
-}  // namespace core::i18n
+}

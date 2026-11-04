@@ -42,7 +42,7 @@ const char* const kSpeedUnits[] = {"km/h", "mph", nullptr};
 const char* const kTempUnits[] = {"°C", "°F", nullptr};
 const char* const kPressureUnits[] = {"kPa", "bar", "psi", nullptr};
 const char* const kRpmRanges[] = {"5000", "6000", "7000", "8000", "9000", nullptr};
-const char* const kLanguages[] = {"English", "Türkçe", nullptr};
+const char* const kLanguages[] = {"English", "Türkçe", "Tiếng Việt", nullptr};
 const char* g_sources[3] = {};  // translated at build time
 
 SettingsPage* g_self = nullptr;
