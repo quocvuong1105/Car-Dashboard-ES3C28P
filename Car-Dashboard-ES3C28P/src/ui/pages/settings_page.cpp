@@ -435,9 +435,9 @@ void SettingsPage::build_display(lv_obj_t* list) {
   ambient_label_ = rows::info(list, ICON_BRIGHTNESS, core::tr(core::Str::SET_AMBIENT), "--");
 
   rows::toggle(list, ICON_ROTATE, core::tr(core::Str::SET_FLIP), nullptr, s.flip_screen, on_flip, nullptr);
-  rows::toggle(list, ICON_MIRROR, core::tr(core::Str::SET_MIRROR), core::tr(core::Str::SET_MIRROR_SUB),
+  rows::toggle(list, ICON_VIEW_GRID, core::tr(core::Str::SET_MIRROR), core::tr(core::Str::SET_MIRROR_SUB),
                s.mirror_screen, on_mirror, nullptr);
-  rows::toggle(list, ICON_MENU, core::tr(core::Str::SET_AUTO_HIDE_MENU),
+  rows::toggle(list, ICON_SETTINGS, core::tr(core::Str::SET_AUTO_HIDE_MENU),
                core::tr(core::Str::SET_AUTO_HIDE_MENU_SUB), s.auto_hide_menu, on_auto_hide_menu, nullptr);
 
   // Accent colour swatches.
