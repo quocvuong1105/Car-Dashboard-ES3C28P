@@ -163,7 +163,7 @@ void tick_cb(lv_timer_t*) {
   const bool auto_hide = core::settings::get().auto_hide_menu;
   if (g.current != PageId::Dashboard || !auto_hide) {
     if (g.menu_hidden) show_navigation(false);
-  } else if (!g.menu_hidden && !hal::touch::pressed() && now - g.last_touch_ms >= 5000) {
+  } else if (!g.menu_hidden && !dialog::is_open() && !hal::touch::pressed() && now - g.last_touch_ms >= 5000) {
     hide_navigation();
   }
   g.status.update(now);
