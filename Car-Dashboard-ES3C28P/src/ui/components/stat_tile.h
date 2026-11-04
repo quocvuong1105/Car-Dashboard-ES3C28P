@@ -17,7 +17,7 @@ namespace ui {
 class StatTile {
  public:
   static constexpr int32_t kWidth = 66;
-  static constexpr int32_t kHeight = 38;
+  static constexpr int32_t kHeight = 44;
 
   void create(lv_obj_t* parent, bool align_right);
   void set_signal(core::SignalId id);
