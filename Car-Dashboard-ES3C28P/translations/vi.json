@@ -122,11 +122,6 @@
   "SET_SYSTEM": "Hệ thống",
   "SET_ABOUT": "Thông tin",
   "SET_BRIGHTNESS": "Độ sáng",
-  "SET_AUTO_BRIGHTNESS": "Độ sáng tự động",
-  "SET_AUTO_BRIGHTNESS_SUB": "Sử dụng cảm biến ánh sáng môi trường",
-  "SET_DAY_BRIGHTNESS": "Độ sáng ban ngày",
-  "SET_NIGHT_BRIGHTNESS": "Độ sáng ban đêm",
-  "SET_AMBIENT": "Ánh sáng môi trường",
   "SET_FLIP": "Xoay màn hình 180°",
   "SET_MIRROR": "Lật ngang màn hình",
   "SET_MIRROR_SUB": "Lật hình ảnh từ trái sang phải. Giữ màn hình 5 giây để tắt chế độ lật.",
@@ -195,5 +190,10 @@
   "ALERT_LINK": "Mất kết nối với xe",
   "ALERT_LINK_TEXT": "Kiểm tra bộ giao tiếp với xe",
   "ALERT_TAP_HINT": "Chạm để đóng",
-  "SETTINGS_RESTORED": "Đã khôi phục cài đặt mặc định"
+  "SETTINGS_RESTORED": "Đã khôi phục cài đặt mặc định",
+  "SET_DISPLAY_MODE": "Chế độ hiển thị",
+  "DISPLAY_LIGHT": "Sáng",
+  "DISPLAY_DARK": "Tối",
+  "DISPLAY_FOLLOW_VEHICLE": "Theo đèn xe",
+  "DISPLAY_FOLLOW_UNAVAILABLE": "Kết nối dữ liệu hiện tại chưa cung cấp trạng thái đèn xe."
 }
