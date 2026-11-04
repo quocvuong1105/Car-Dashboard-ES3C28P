@@ -29,8 +29,8 @@ void system_info(SystemInfo& out) {
   out.heap_min_free = ESP.getMinFreeHeap();
   out.heap_total = ESP.getHeapSize();
   out.sdk_version = ESP.getSdkVersion();
-  out.board_name = CYD_BOARD_NAME;
-  out.panel_name = hal::lcd_panel_name();
+  out.board_name = "ESP32-S3 (ES3C28P)";
+  out.panel_name = "ILI9341V 240x340";
 }
 
 uint16_t light_sensor_raw() { return hal::light_sensor::raw(); }
