@@ -53,6 +53,12 @@ void StatusBar::show_back(bool show) { set_visible(back_, show); }
 
 void StatusBar::set_visible(bool visible) { ui::set_visible(root_, visible); }
 
+void StatusBar::set_full_width(bool full_width) {
+  if (root_ == nullptr) return;
+  lv_obj_set_pos(root_, full_width ? 0 : layout::kRailW, 0);
+  lv_obj_set_width(root_, full_width ? layout::kScreenW : layout::kContentW);
+}
+
 void StatusBar::update(uint32_t now_ms) {
   if (now_ms - last_update_ms_ < kUpdatePeriodMs) return;
   last_update_ms_ = now_ms;
