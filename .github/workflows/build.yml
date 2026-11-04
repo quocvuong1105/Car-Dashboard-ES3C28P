@@ -41,7 +41,7 @@ jobs:
 
           if [ "${#FILES[@]}" -ne 1 ]; then
             echo "Expected exactly one .ino file."
-            printf '%s\\n' "${FILES[@]}"
+            printf '%s\n' "${FILES[@]}"
             exit 1
           fi
 
@@ -96,7 +96,7 @@ jobs:
         if: always()
         run: |
           find firmware-output -type f \
-            -printf '%f %s bytes\\n' || true
+            -printf '%f %s bytes\n' || true
 
       - name: Upload firmware artifacts
         if: success()
