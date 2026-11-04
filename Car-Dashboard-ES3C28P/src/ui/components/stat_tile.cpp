@@ -28,6 +28,10 @@ void StatTile::create(lv_obj_t* parent, bool align_right) {
   lv_obj_set_flex_align(caption_line, side, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   icon_ = icon(caption_line, ICON_INFO, font::caption(), color::text_dim());
   caption_ = label(caption_line, font::caption(), color::text_faint(), "");
+  // Vietnamese glyphs with below-baseline marks need a little extra draw area.
+  const int32_t caption_h = lv_font_get_line_height(font::caption()) + 4;
+  lv_obj_set_height(icon_, caption_h);
+  lv_obj_set_height(caption_, caption_h);
 }
 
 void StatTile::set_signal(core::SignalId id) {
