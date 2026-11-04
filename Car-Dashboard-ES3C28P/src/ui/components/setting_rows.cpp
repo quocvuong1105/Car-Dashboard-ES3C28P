@@ -9,6 +9,9 @@ namespace {
 
 lv_obj_t* base_row(lv_obj_t* list, bool clickable) {
   lv_obj_t* r = card(list);
+  // Rows are visual/touch targets, not nested scroll containers. Let vertical
+  // drag gestures reach the owning list (notably Settings > About).
+  lv_obj_set_scrollable(r, false);
   lv_obj_set_width(r, lv_pct(100));
   lv_obj_set_height(r, LV_SIZE_CONTENT);
   lv_obj_set_style_min_height(r, layout::kRowH, 0);
