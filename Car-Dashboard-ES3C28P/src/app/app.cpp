@@ -20,7 +20,6 @@
 #include "../hal/button.h"
 #include "../hal/buzzer.h"
 #include "../hal/display.h"
-#include "../hal/light_sensor.h"
 #include "../hal/nvs_storage.h"
 #include "../hal/rgb_led.h"
 #include "../hal/touch.h"
@@ -65,18 +64,11 @@ void select_data_source(uint32_t now_ms) {
   for (auto& s : g_sounded) s = core::Severity::Normal;
 }
 
-uint8_t target_brightness() {
-  const core::Settings& s = core::settings::get();
-  if (!s.auto_brightness) return s.brightness;
-  const float ambient = hal::light_sensor::level() / 100.0f;
-  const float night = core::clamp<float>(s.night_brightness, 5.0f, s.brightness);
-  return static_cast<uint8_t>(core::lerp(night, s.brightness, ambient) + 0.5f);
-}
+uint8_t target_brightness() { return core::settings::get().brightness; }
 
 void update_backlight(uint32_t now_ms) {
   if (core::elapsed(now_ms, g_last_backlight_ms) < APP_BACKLIGHT_TICK_MS) return;
   g_last_backlight_ms = now_ms;
-  hal::light_sensor::update(now_ms);
   hal::backlight::set_target(target_brightness());
   hal::backlight::update(now_ms);
   // The status LED follows the screen so it never dazzles at night.
@@ -213,7 +205,6 @@ void setup() {
   lv_refr_now(nullptr);
   const uint32_t splash_start = millis();
 
-  hal::light_sensor::init();
   hal::backlight::set_target(target_brightness());  // fades in while booting
 
   // ---- Hardware -------------------------------------------------------------------------
