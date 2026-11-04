@@ -48,6 +48,7 @@ struct Shell {
   bool rebuild_pending = false;
   lv_obj_t* reveal_overlay = nullptr;
   uint32_t last_touch_ms = 0;
+  uint32_t last_touch_activity_ms = 0;
   bool menu_hidden = false;
 };
 
@@ -154,8 +155,9 @@ void reveal_released_cb(lv_event_t*) {
 void tick_cb(lv_timer_t*) {
   const uint32_t now = platform::millis();
   const uint32_t touch_activity = hal::touch::last_activity_ms();
-  if (touch_activity != g.last_touch_ms) {
-    g.last_touch_ms = touch_activity;
+  if (touch_activity != g.last_touch_activity_ms) {
+    g.last_touch_activity_ms = touch_activity;
+    g.last_touch_ms = now;
     if (g.menu_hidden) show_navigation(true);
   }
   const bool auto_hide = core::settings::get().auto_hide_menu;
@@ -221,6 +223,7 @@ void settings_changed(uint32_t changes, void*) {
   if (!g.started) return;
   if (changes & core::settings::kChangeAutoHideMenu) {
     g.last_touch_ms = platform::millis();
+    g.last_touch_activity_ms = hal::touch::last_activity_ms();
     if (!core::settings::get().auto_hide_menu && g.menu_hidden) show_navigation(false);
   }
   if (changes & (core::settings::kChangeLanguage | core::settings::kChangeTheme)) {
@@ -261,6 +264,7 @@ void rebuild_async(void*) {
 void calibration_done() {
   lv_screen_load(g.screen);
   g.last_touch_ms = platform::millis();
+  g.last_touch_activity_ms = hal::touch::last_activity_ms();
   show_navigation(false);
   hal::display::set_mirror(core::settings::get().mirror_screen);
   g.pages[static_cast<int>(g.current)]->on_show();
@@ -285,6 +289,7 @@ void start(bool run_touch_calibration) {
   banner::init();
   navigate(PageId::Dashboard);
   g.last_touch_ms = platform::millis();
+  g.last_touch_activity_ms = hal::touch::last_activity_ms();
   g.timer = lv_timer_create(tick_cb, APP_UI_TICK_MS, nullptr);
   g.started = true;
 
@@ -310,6 +315,7 @@ void navigate(PageId id) {
   g.current = id;
   if (id == PageId::Dashboard) {
     g.last_touch_ms = platform::millis();
+    g.last_touch_activity_ms = hal::touch::last_activity_ms();
     show_navigation(false);
   } else {
     show_navigation(false);
