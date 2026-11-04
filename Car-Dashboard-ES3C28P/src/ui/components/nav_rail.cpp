@@ -52,7 +52,7 @@ void NavRail::create(lv_obj_t* parent, SelectFn on_select) {
     lv_obj_set_style_bg_opa(badges_[i], LV_OPA_COVER, 0);
     lv_obj_set_style_border_width(badges_[i], 2, 0);
     lv_obj_set_style_border_color(badges_[i], color::surface(), 0);
-    set_visible(badges_[i], false);
+    ui::set_visible(badges_[i], false);
   }
 }
 
@@ -61,7 +61,7 @@ void NavRail::set_visible(bool visible) { ui::set_visible(root_, visible); }
 void NavRail::set_active(PageId page) {
   for (int i = 0; i < kItems; ++i) {
     const bool active = i == static_cast<int>(page);
-    set_visible(markers_[i], active);
+    ui::set_visible(markers_[i], active);
     set_text_color(icons_[i], active ? color::accent() : color::text_dim());
     lv_obj_set_style_bg_color(items_[i], color::accent(), 0);
     lv_obj_set_style_bg_opa(items_[i], active ? LV_OPA_10 : LV_OPA_TRANSP, 0);
@@ -71,7 +71,7 @@ void NavRail::set_active(PageId page) {
 void NavRail::set_badge(PageId page, bool visible, lv_color_t c) {
   lv_obj_t* badge = badges_[static_cast<int>(page)];
   lv_obj_set_style_bg_color(badge, c, 0);
-  set_visible(badge, visible);
+  ui::set_visible(badge, visible);
 }
 
 void NavRail::clicked_cb(lv_event_t* e) {
