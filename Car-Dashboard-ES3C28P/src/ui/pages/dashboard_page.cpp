@@ -5,6 +5,7 @@
 
 #include "../../core/i18n.h"
 #include "../../core/platform.h"
+#include "../../core/settings.h"
 #include "../../core/signals.h"
 #include "../../core/units.h"
 #include "../../core/vehicle_state.h"
@@ -183,11 +184,13 @@ void DashboardPage::dot_cb(lv_event_t* e) {
 }
 
 void DashboardPage::tile_long_press_cb(lv_event_t* e) {
+  if (core::settings::get().mirror_screen) return;  // reserve a five-second hold to disable Mirror
   auto* self = static_cast<DashboardPage*>(lv_obj_get_user_data(lv_event_get_current_target_obj(e)));
   self->open_picker(true, static_cast<uint8_t>(reinterpret_cast<intptr_t>(lv_event_get_user_data(e))));
 }
 
 void DashboardPage::gauge_long_press_cb(lv_event_t* e) {
+  if (core::settings::get().mirror_screen) return;  // reserve a five-second hold to disable Mirror
   auto* self = static_cast<DashboardPage*>(lv_obj_get_user_data(lv_event_get_current_target_obj(e)));
   self->open_picker(false, static_cast<uint8_t>(reinterpret_cast<intptr_t>(lv_event_get_user_data(e))));
 }
