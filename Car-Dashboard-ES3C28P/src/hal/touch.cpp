@@ -64,11 +64,6 @@ bool read_landscape_point(int32_t& x, int32_t& y) {
   return true;
 }
 
-core::TouchCalibration active_calibration() {
-  if (!display::flipped()) return g_cal;
-  return g_cal.rotated_180(lcd().width(), lcd().height());
-}
-
 void read_cb(lv_indev_t*, lv_indev_data_t* data) {
   int32_t x = 0, y = 0;
   const bool pressed = g_enabled && read_landscape_point(x, y);
@@ -93,9 +88,16 @@ void read_cb(lv_indev_t*, lv_indev_data_t* data) {
     g_hold_pending = true;
   }
   if (g_press_count < kPressDebounce) ++g_press_count;
-  const core::TouchPoint mapped = active_calibration().map(x, y);
+  // The FT6336G mapping and stored affine calibration are defined in the
+  // unrotated landscape coordinate space. Apply panel rotation to the mapped
+  // point (not to the calibration matrix) so touch follows LCD rotation 180.
+  const core::TouchPoint mapped = g_cal.map(x, y);
   int32_t mapped_x = mapped.x;
   int32_t mapped_y = mapped.y;
+  if (display::flipped()) {
+    mapped_x = lcd().width() - 1 - mapped_x;
+    mapped_y = lcd().height() - 1 - mapped_y;
+  }
   if (display::mirrored()) {
     if (display::flipped()) mapped_y = lcd().height() - 1 - mapped_y;
     else mapped_x = lcd().width() - 1 - mapped_x;
