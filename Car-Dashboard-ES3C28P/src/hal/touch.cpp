@@ -31,6 +31,7 @@ lv_point_t g_last{0, 0};
 bool g_i2c_ready = false;
 bool g_pressed = false;
 bool g_hold_fired = false;
+bool g_hold_pending = false;
 uint32_t g_press_started_ms = 0;
 uint32_t g_last_activity_ms = 0;
 
@@ -76,6 +77,7 @@ void read_cb(lv_indev_t*, lv_indev_data_t* data) {
     g_press_count = 0;
     g_pressed = false;
     g_hold_fired = false;
+    g_hold_pending = false;
     data->state = LV_INDEV_STATE_RELEASED;
     data->point = g_last;
     return;
@@ -86,6 +88,10 @@ void read_cb(lv_indev_t*, lv_indev_data_t* data) {
     g_hold_fired = false;
   }
   g_last_activity_ms = now;
+  if (display::mirrored() && !g_hold_fired && now - g_press_started_ms >= 5000) {
+    g_hold_fired = true;
+    g_hold_pending = true;
+  }
   if (g_press_count < kPressDebounce) ++g_press_count;
   const core::TouchPoint mapped = active_calibration().map(x, y);
   int32_t mapped_x = mapped.x;
@@ -169,6 +175,7 @@ void set_enabled(bool enabled) {
   g_press_count = 0;
   g_pressed = false;
   g_hold_fired = false;
+  g_hold_pending = false;
   if (g_indev != nullptr) lv_indev_reset(g_indev, nullptr);
 }
 
@@ -177,8 +184,8 @@ bool pressed() { return g_pressed; }
 uint32_t last_activity_ms() { return g_last_activity_ms; }
 
 bool take_five_second_hold() {
-  if (!g_pressed || g_hold_fired || !display::mirrored() || millis() - g_press_started_ms < 5000) return false;
-  g_hold_fired = true;
-  return true;
+  const bool pending = g_hold_pending;
+  g_hold_pending = false;
+  return pending;
 }
 }  // namespace hal::touch
