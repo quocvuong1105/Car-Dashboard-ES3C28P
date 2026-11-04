@@ -293,6 +293,9 @@ void SettingsPage::on_show() {
 void SettingsPage::on_settings_changed(uint32_t changes) {
   refresh_summaries();
 
+  if (section_ == Section::Display && brightness_value_ != nullptr) {
+    percent_text(brightness_value_, get().brightness);
+  }
   if (section_ == Section::Sound && volume_value_ != nullptr) percent_text(volume_value_, get().volume);
 
   // The redline / shift steppers are bounded by the tachometer range: rebuild the
