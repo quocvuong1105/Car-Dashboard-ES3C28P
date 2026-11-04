@@ -11,6 +11,7 @@
 #include "../core/signals.h"
 #include "../core/units.h"
 #include "../core/vehicle_state.h"
+#include "../hal/touch.h"
 #include "components/banner.h"
 #include "components/dialog.h"
 #include "components/nav_rail.h"
@@ -44,6 +45,9 @@ struct Shell {
   uint32_t dtc_revision = 0;
   bool started = false;
   bool rebuild_pending = false;
+  lv_obj_t* reveal_overlay = nullptr;
+  uint32_t last_touch_ms = 0;
+  bool menu_hidden = false;
 };
 
 Shell g;
@@ -114,10 +118,51 @@ void refresh_alert_banner(uint32_t now_ms) {
   banner::set_owner(static_cast<int>(top));
 }
 
+// ---- Auto-hide navigation --------------------------------------------------------------------
+
+void show_navigation(bool keep_touch_blocker) {
+  g.menu_hidden = false;
+  g.rail.set_visible(true);
+  lv_obj_set_pos(g.content, layout::kRailW, layout::kStatusH);
+  lv_obj_set_size(g.content, layout::kContentW, layout::kContentH);
+  if (!keep_touch_blocker && g.reveal_overlay != nullptr) lv_obj_add_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+}
+
+void hide_navigation() {
+  if (g.current != PageId::Dashboard || !core::settings::get().auto_hide_menu || g.menu_hidden) return;
+  g.menu_hidden = true;
+  g.rail.set_visible(false);
+  lv_obj_set_pos(g.content, 0, layout::kStatusH);
+  lv_obj_set_size(g.content, layout::kScreenW, layout::kContentH);
+  if (g.reveal_overlay != nullptr) {
+    lv_obj_clear_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(g.reveal_overlay);
+  }
+}
+
+void reveal_pressed_cb(lv_event_t*) {
+  if (g.menu_hidden) show_navigation(true);
+}
+
+void reveal_released_cb(lv_event_t*) {
+  if (g.reveal_overlay != nullptr) lv_obj_add_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+}
+
 // ---- Periodic refresh ------------------------------------------------------------------------
 
 void tick_cb(lv_timer_t*) {
   const uint32_t now = platform::millis();
+  const uint32_t touch_activity = hal::touch::last_activity_ms();
+  if (touch_activity != g.last_touch_ms) {
+    g.last_touch_ms = touch_activity;
+    if (g.menu_hidden) show_navigation(true);
+  }
+  const bool auto_hide = core::settings::get().auto_hide_menu;
+  if (g.current != PageId::Dashboard || !auto_hide) {
+    if (g.menu_hidden) show_navigation(false);
+  } else if (!g.menu_hidden && !hal::touch::pressed() && now - g.last_touch_ms >= 5000) {
+    hide_navigation();
+  }
   g.status.update(now);
   banner::tick(now);
   refresh_alert_banner(now);
@@ -154,6 +199,18 @@ void build_shell() {
 
   g.rail.create(g.screen, rail_select);
   g.status.create(g.screen, back_cb, nullptr);
+
+  g.reveal_overlay = lv_obj_create(g.screen);
+  lv_obj_remove_style_all(g.reveal_overlay);
+  lv_obj_set_pos(g.reveal_overlay, 0, layout::kStatusH);
+  lv_obj_set_size(g.reveal_overlay, layout::kScreenW, layout::kContentH);
+  lv_obj_set_style_bg_opa(g.reveal_overlay, LV_OPA_TRANSP, 0);
+  lv_obj_set_scrollable(g.reveal_overlay, false);
+  lv_obj_set_clickable(g.reveal_overlay, true);
+  lv_obj_add_event_cb(g.reveal_overlay, reveal_pressed_cb, LV_EVENT_PRESSED, nullptr);
+  lv_obj_add_event_cb(g.reveal_overlay, reveal_released_cb, LV_EVENT_RELEASED, nullptr);
+  lv_obj_add_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+  g.menu_hidden = false;
   g.alert_revision = core::alerts().revision() - 1;
   g.dtc_revision = core::vehicle().dtc.revision - 1;
 }
@@ -161,6 +218,10 @@ void build_shell() {
 void settings_changed(uint32_t changes, void*) {
   if (changes & core::settings::kChangeLanguage) core::i18n::set_language(core::settings::get().language);
   if (!g.started) return;
+  if (changes & core::settings::kChangeAutoHideMenu) {
+    g.last_touch_ms = platform::millis();
+    if (!core::settings::get().auto_hide_menu && g.menu_hidden) show_navigation(false);
+  }
   if (changes & (core::settings::kChangeLanguage | core::settings::kChangeTheme)) {
     request_rebuild();
     return;
@@ -219,6 +280,7 @@ void start(bool run_touch_calibration) {
   build_shell();
   banner::init();
   navigate(PageId::Dashboard);
+  g.last_touch_ms = platform::millis();
   g.timer = lv_timer_create(tick_cb, APP_UI_TICK_MS, nullptr);
   g.started = true;
 
@@ -239,6 +301,12 @@ void navigate(PageId id) {
     set_visible(previous->root(), false);
   }
   g.current = id;
+  if (id == PageId::Dashboard) {
+    g.last_touch_ms = platform::millis();
+    show_navigation(false);
+  } else {
+    show_navigation(false);
+  }
   Page* p = page(id);
   set_visible(p->root(), true);
   g.rail.set_active(id);
