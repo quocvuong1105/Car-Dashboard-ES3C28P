@@ -131,6 +131,10 @@ const char* const kEnglish[] = {
   "Night brightness",
   "Ambient light",
   "Rotate screen 180°",
+  "Mirror horizontally",
+  "Flip the displayed image left to right. Hold the screen for 5 seconds to turn Mirror off.",
+  "Auto-hide menu",
+  "Hide the navigation menu after 5 seconds without touch.",
   "Accent color",
   "Speed & distance",
   "Temperature",
@@ -196,7 +200,7 @@ const char* const kEnglish[] = {
   "Tap to dismiss",
   "Settings restored to defaults",
 };
-static_assert(sizeof(kEnglish) / sizeof(kEnglish[0]) == static_cast<unsigned>(core::Str::Count), "en catalog size");
+static_assert(sizeof(kEnglish) / sizeof(kEnglish[0]) == static_cast<unsigned>(core::Str::Count), "kEnglish catalog size");
 const char* const kTurkish[] = {
   "Araç Gösterge Paneli",
   "Tamam",
@@ -327,6 +331,10 @@ const char* const kTurkish[] = {
   "Gece parlaklığı",
   "Ortam ışığı",
   "Ekranı 180° döndür",
+  "Yatay aynalama",
+  "Görüntüyü soldan sağa çevirir. Aynalamayı kapatmak için ekrana 5 saniye basılı tutun.",
+  "Menüyü otomatik gizle",
+  "5 saniye dokunulmadığında gezinme menüsünü gizler.",
   "Vurgu rengi",
   "Hız ve mesafe",
   "Sıcaklık",
@@ -392,7 +400,7 @@ const char* const kTurkish[] = {
   "Kapatmak için dokunun",
   "Ayarlar varsayılana döndü",
 };
-static_assert(sizeof(kTurkish) / sizeof(kTurkish[0]) == static_cast<unsigned>(core::Str::Count), "tr catalog size");
+static_assert(sizeof(kTurkish) / sizeof(kTurkish[0]) == static_cast<unsigned>(core::Str::Count), "kTurkish catalog size");
 const char* const kVietnamese[] = {
   "Bảng điều khiển xe",
   "Đồng ý",
@@ -523,6 +531,10 @@ const char* const kVietnamese[] = {
   "Độ sáng ban đêm",
   "Ánh sáng môi trường",
   "Xoay màn hình 180°",
+  "Lật ngang màn hình",
+  "Lật hình ảnh từ trái sang phải. Giữ màn hình 5 giây để tắt chế độ lật.",
+  "Tự ẩn menu",
+  "Ẩn menu điều hướng sau 5 giây không chạm.",
   "Màu nhấn",
   "Tốc độ và quãng đường",
   "Nhiệt độ",
@@ -588,5 +600,5 @@ const char* const kVietnamese[] = {
   "Chạm để đóng",
   "Đã khôi phục cài đặt mặc định",
 };
-static_assert(sizeof(kVietnamese) / sizeof(kVietnamese[0]) == static_cast<unsigned>(core::Str::Count), "vi catalog size");
+static_assert(sizeof(kVietnamese) / sizeof(kVietnamese[0]) == static_cast<unsigned>(core::Str::Count), "kVietnamese catalog size");
 }
