@@ -30,7 +30,7 @@ void system_info(SystemInfo& out) {
   out.heap_total = ESP.getHeapSize();
   out.sdk_version = ESP.getSdkVersion();
   out.board_name = "ESP32-S3 (ES3C28P)";
-  out.panel_name = "ILI9341V 240x340";
+  out.panel_name = "ILI9341V 240x320";
 }
 
 uint16_t light_sensor_raw() { return hal::light_sensor::raw(); }
