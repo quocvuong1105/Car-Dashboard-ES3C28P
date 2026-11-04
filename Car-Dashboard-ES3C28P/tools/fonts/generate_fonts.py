@@ -92,7 +92,6 @@ def main() -> None:
                 "--no-compress",
                 "--lv-include", "lvgl.h",
                 "--lv-font-name", font_name,
-                "--relative-project-path", str(ROOT),
                 "-o", str(FONT_DIR / f"{font_name}.c"),
                 "--font", str(downloaded[weight]),
                 "-r", TEXT_RANGES,
