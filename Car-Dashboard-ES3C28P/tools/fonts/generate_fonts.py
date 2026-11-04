@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Rebuild LVGL text fonts with full Vietnamese glyph coverage.
+"""Generate Vietnamese-only LVGL fallback fonts without touching the base fonts.
 
-Font binaries are downloaded from pinned upstream commits into a temporary
-folder; only the generated C files are written into the Arduino sketch.
+The five committed ui_font_*.c files are the immutable Latin/icon baseline.
+This script emits separate *_vi.c files from the exact Barlow TTF revision
+used for that baseline, containing only Vietnamese-specific precomposed
+codepoints absent from the baseline's Latin-1 repertoire.
 """
 from __future__ import annotations
 
@@ -14,11 +16,7 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 FONT_DIR = ROOT / "src" / "ui" / "fonts"
-# Use the exact Barlow TTF files from the upstream Car Dashboard source.
-# These are the files used to generate the committed Latin glyph bitmaps.
 BARLOW_SOURCE_REV = "a87aa340da64a05fbe4e42f36ebc16fdfac8b8db"
-MDI_REV = "57b567a448bd579892174cd47c47f9e187ea56c6"
-
 BARLOW_FILES = {
     "medium": (
         "https://raw.githubusercontent.com/muki01/Car-Dashboard-ESP32-CYD/"
@@ -28,33 +26,19 @@ BARLOW_FILES = {
         "https://raw.githubusercontent.com/muki01/Car-Dashboard-ESP32-CYD/"
         f"{BARLOW_SOURCE_REV}/tools/fonts/ttf/BarlowSemiCondensed-SemiBold.ttf"
     ),
-    "condensed_semibold": (
-        "https://raw.githubusercontent.com/muki01/Car-Dashboard-ESP32-CYD/"
-        f"{BARLOW_SOURCE_REV}/tools/fonts/ttf/BarlowCondensed-SemiBold.ttf"
-    ),
 }
-MDI_URL = (
-    "https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/"
-    f"{MDI_REV}/fonts/materialdesignicons-webfont.ttf"
-)
-
-# Precomposed Vietnamese letters, existing Turkish glyphs, punctuation, and
-# common combining marks. Keep the full set in every text size for consistency.
-TEXT_RANGES = (
-    "0x20-0x7E,0x00C0-0x00FF,0xB0,0xB1,0xB7,0xD7,"
-    "0xC7,0xE7,0xD6,0xF6,0xDC,0xFC,0x11E,0x11F,0x130,0x131,0x15E,0x15F,"
+# The original fonts already contain ASCII, Latin-1 and Turkish glyphs.
+# These ranges add only Vietnamese-specific precomposed letters.
+VIETNAMESE_RANGES = (
     "0x0102-0x0103,0x0110-0x0111,0x0128-0x0129,0x0168-0x0169,"
-    "0x01A0-0x01A1,0x01AF-0x01B0,0x1EA0-0x1EF9,"
-    "0x0300-0x0303,0x0306,0x0309,0x0323,"
-    "0x2013,0x2014,0x2022,0x2026"
+    "0x01A0-0x01A1,0x01AF-0x01B0,0x1EA0-0x1EF9"
 )
-
 FONT_SIZES = (
-    ("ui_font_12", 12, "medium", True),
-    ("ui_font_14", 14, "medium", True),
-    ("ui_font_16", 16, "semibold", True),
-    ("ui_font_20", 20, "semibold", True),
-    ("ui_font_28", 28, "semibold", False),
+    ("ui_font_12", 12, "medium"),
+    ("ui_font_14", 14, "medium"),
+    ("ui_font_16", 16, "semibold"),
+    ("ui_font_20", 20, "semibold"),
+    ("ui_font_28", 28, "semibold"),
 )
 
 
@@ -66,35 +50,48 @@ def download(url: str, destination: pathlib.Path) -> None:
         destination.write_bytes(response.read())
 
 
-def existing_icon_mappings() -> list[str]:
-    # The existing 12 px generated font is the source of truth for the
-    # application's private-use Material Design icon remappings.
-    source = FONT_DIR / "ui_font_12.c"
-    if not source.exists():
-        raise FileNotFoundError(f"Missing existing icon mapping source: {source}")
-    header = source.read_text(encoding="utf-8").split("*/", 1)[0]
-    mappings = re.findall(r"-r\s+(0x[0-9A-Fa-f]+=>0x[0-9A-Fa-f]+)", header)
-    if not mappings:
-        raise RuntimeError("Could not recover existing Material Design icon mappings")
-    return mappings
+def baseline_metrics(font_name: str) -> tuple[int, int]:
+    source = FONT_DIR / f"{font_name}.c"
+    text = source.read_text(encoding="utf-8")
+    line_height = re.search(r"\.line_height\s*=\s*(\d+)", text)
+    base_line = re.search(r"\.base_line\s*=\s*(\d+)", text)
+    if not line_height or not base_line:
+        raise RuntimeError(f"Cannot read baseline metrics from {source}")
+    return int(line_height.group(1)), int(base_line.group(1))
+
+
+def align_metrics(generated: pathlib.Path, line_height: int, base_line: int) -> None:
+    text = generated.read_text(encoding="utf-8")
+    text, n_line = re.subn(
+        r"(\.line_height\s*=\s*)\d+",
+        lambda m: m.group(1) + str(line_height),
+        text,
+        count=1,
+    )
+    text, n_base = re.subn(
+        r"(\.base_line\s*=\s*)\d+",
+        lambda m: m.group(1) + str(base_line),
+        text,
+        count=1,
+    )
+    if n_line != 1 or n_base != 1:
+        raise RuntimeError(f"Cannot align fallback metrics in {generated}")
+    generated.write_text(text, encoding="utf-8")
 
 
 def main() -> None:
     FONT_DIR.mkdir(parents=True, exist_ok=True)
-    icon_mappings = existing_icon_mappings()
-
-    with tempfile.TemporaryDirectory(prefix="car-dashboard-fonts-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="car-dashboard-vietnamese-fonts-") as tmp:
         temp = pathlib.Path(tmp)
         downloaded: dict[str, pathlib.Path] = {}
-        for name, url in BARLOW_FILES.items():
+        for weight, url in BARLOW_FILES.items():
             target = temp / pathlib.Path(url).name
             download(url, target)
-            downloaded[name] = target
+            downloaded[weight] = target
 
-        mdi = temp / "materialdesignicons-webfont.ttf"
-        download(MDI_URL, mdi)
-
-        for font_name, size, weight, include_icons in FONT_SIZES:
+        for font_name, size, weight in FONT_SIZES:
+            output = FONT_DIR / f"{font_name}_vi.c"
+            line_height, base_line = baseline_metrics(font_name)
             args = [
                 "lv_font_conv",
                 "--bpp", "4",
@@ -102,19 +99,16 @@ def main() -> None:
                 "--format", "lvgl",
                 "--no-compress",
                 "--lv-include", "lvgl.h",
-                "--lv-font-name", font_name,
-                "-o", str(FONT_DIR / f"{font_name}.c"),
+                "--lv-font-name", f"{font_name}_vi",
+                "-o", str(output),
                 "--font", str(downloaded[weight]),
-                "-r", TEXT_RANGES,
+                "-r", VIETNAMESE_RANGES,
             ]
-            if include_icons:
-                args.extend(["--font", str(mdi)])
-                for mapping in icon_mappings:
-                    args.extend(["-r", mapping])
-            print(f"Generating {font_name} ({size}px)")
+            print(f"Generating Vietnamese fallback {font_name}_vi ({size}px)")
             subprocess.run(args, check=True)
+            align_metrics(output, line_height, base_line)
 
-    print("Generated five LVGL text fonts with Vietnamese glyph coverage.")
+    print("Generated five Vietnamese-only fallback fonts; base font files were not modified.")
 
 
 if __name__ == "__main__":
