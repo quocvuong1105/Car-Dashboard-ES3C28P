@@ -60,9 +60,12 @@ struct Settings {
   uint8_t dash_view;
   SignalId corner_slots[kCornerSlots];
   SignalId gauge_slots[kGaugeSlots];
+  // Appended fields preserve the existing persisted layout.
+  bool mirror_screen;
+  bool auto_hide_menu;
 };
 
-constexpr uint16_t kSettingsVersion = 1;
+constexpr uint16_t kSettingsVersion = 2;
 
 namespace settings {
 
@@ -79,6 +82,8 @@ enum Change : uint32_t {
   kChangeLed = 1u << 8,
   kChangeDataSource = 1u << 9,
   kChangeLayout = 1u << 10,  ///< dashboard view / slots
+  kChangeMirror = 1u << 11,
+  kChangeAutoHideMenu = 1u << 12,
   kChangeAll = 0xFFFFFFFFu,
 };
 
