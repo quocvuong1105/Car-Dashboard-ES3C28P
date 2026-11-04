@@ -15,6 +15,7 @@ class StatusBar {
   void create(lv_obj_t* parent, lv_event_cb_t on_back, void* user);
   void set_title(const char* title);
   void show_back(bool show);
+  void set_visible(bool visible);
   void update(uint32_t now_ms);
 
  private:
