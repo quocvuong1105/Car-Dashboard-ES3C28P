@@ -135,7 +135,7 @@ void show_navigation(bool keep_touch_blocker) {
 }
 
 void hide_navigation() {
-  if (g.current != PageId::Dashboard || !core::settings::get().auto_hide_menu || g.menu_hidden) return;
+  if (!core::settings::get().auto_hide_menu || g.menu_hidden) return;
   g.menu_hidden = true;
   g.rail.set_visible(false);
   lv_obj_set_pos(g.content, 0, layout::kStatusH);
@@ -176,7 +176,7 @@ void tick_cb(lv_timer_t*) {
     g.reveal_touch_active = false;
   }
   const bool auto_hide = core::settings::get().auto_hide_menu;
-  if (g.current != PageId::Dashboard || !auto_hide) {
+  if (!auto_hide) {
     if (g.menu_hidden) show_navigation(false);
   } else if (!g.menu_hidden && !dialog::is_open() && !hal::touch::pressed() && now - g.last_touch_ms >= 5000) {
     hide_navigation();
@@ -328,13 +328,9 @@ void navigate(PageId id) {
     set_visible(previous->root(), false);
   }
   g.current = id;
-  if (id == PageId::Dashboard) {
-    g.last_touch_ms = platform::millis();
-    g.last_touch_activity_ms = hal::touch::last_activity_ms();
-    show_navigation(false);
-  } else {
-    show_navigation(false);
-  }
+  g.last_touch_ms = platform::millis();
+  g.last_touch_activity_ms = hal::touch::last_activity_ms();
+  show_navigation(false);
   Page* p = page(id);
   set_visible(p->root(), true);
   g.rail.set_active(id);
