@@ -163,6 +163,7 @@ void load_trip() {
 void on_settings_changed(uint32_t changes, void*) {
   const core::Settings& s = core::settings::get();
   if (changes & core::settings::kChangeOrientation) hal::display::set_flipped(s.flip_screen);
+  if (changes & core::settings::kChangeMirror) hal::display::set_mirror(s.mirror_screen);
   if (changes & core::settings::kChangeSound) hal::buzzer::set_volume(s.volume);
   if (changes & core::settings::kChangeDataSource) select_data_source(millis());
 }
@@ -205,7 +206,7 @@ void setup() {
   lv_log_register_print_cb(lvgl_log_cb);
 
   hal::backlight::init();
-  lv_display_t* display = hal::display::init(s.flip_screen);
+  lv_display_t* display = hal::display::init(s.flip_screen, s.mirror_screen);
   if (display == nullptr) halt_with_error("display");
   ui::init(display);
   ui::splash_show();
@@ -255,6 +256,11 @@ void loop() {
   update_status_led(now);
   update_backlight(now);
   handle_button(now);
+  if (hal::touch::take_five_second_hold()) {
+    core::settings::edit().mirror_screen = false;
+    core::settings::commit(core::settings::kChangeMirror);
+    ui::toast(core::Severity::Normal, "Mirror", "Mirror disabled");
+  }
   hal::buzzer::update(now);
   hal::rgb_led::update(now);
 
