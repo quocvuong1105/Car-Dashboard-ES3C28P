@@ -43,6 +43,7 @@ const char* const kTempUnits[] = {"°C", "°F", nullptr};
 const char* const kPressureUnits[] = {"kPa", "bar", "psi", nullptr};
 const char* const kRpmRanges[] = {"5000", "6000", "7000", "8000", "9000", nullptr};
 const char* const kLanguages[] = {"English", "Türkçe", "Tiếng Việt", nullptr};
+const char* g_display_modes[4] = {};
 const char* g_sources[3] = {};  // translated at build time
 
 SettingsPage* g_self = nullptr;
@@ -94,16 +95,12 @@ void fmt_speed_or_off(int32_t v, char* out, uint32_t len) {
 
 // ---- Change handlers -----------------------------------------------------------------------
 
-void on_auto_brightness(lv_event_t* e) {
-  edit().auto_brightness = switch_on(e);
-  commit(chg::kChangeDisplay);
+void on_display_mode(lv_event_t* e) {
+  edit().display_mode = static_cast<core::DisplayMode>(selected_segment(e));
+  commit(chg::kChangeTheme);
 }
 void on_brightness(lv_event_t* e) {
   edit().brightness = static_cast<uint8_t>(slider_value(e));
-  commit(chg::kChangeDisplay);
-}
-void on_night_brightness(lv_event_t* e) {
-  edit().night_brightness = static_cast<uint8_t>(slider_value(e));
   commit(chg::kChangeDisplay);
 }
 void on_flip(lv_event_t* e) {
@@ -256,11 +253,11 @@ void SettingsPage::refresh_summaries() {
   const core::Settings& s = get();
   char buf[48];
 
-  if (s.auto_brightness) {
-    snprintf(buf, sizeof(buf), "%s · %u%%", core::tr(core::Str::AUTO), s.brightness);
-  } else {
-    snprintf(buf, sizeof(buf), "%u%%", s.brightness);
-  }
+  const core::Str display_label =
+      s.display_mode == core::DisplayMode::Light ? core::Str::DISPLAY_LIGHT
+      : s.display_mode == core::DisplayMode::FollowVehicle ? core::Str::DISPLAY_FOLLOW_VEHICLE
+                                                           : core::Str::DISPLAY_DARK;
+  snprintf(buf, sizeof(buf), "%s · %u%%", core::tr(display_label), s.brightness);
   set_text(summaries_[static_cast<int>(Section::Display)], buf);
 
   snprintf(buf, sizeof(buf), "%s · %s · %s", core::units::label(core::Quantity::Speed, s),
@@ -296,13 +293,6 @@ void SettingsPage::on_show() {
 void SettingsPage::on_settings_changed(uint32_t changes) {
   refresh_summaries();
 
-  if (section_ == Section::Display && night_row_ != nullptr) {
-    const core::Settings& s = get();
-    set_visible(night_row_, s.auto_brightness);
-    set_text(day_title_, core::tr(s.auto_brightness ? core::Str::SET_DAY_BRIGHTNESS : core::Str::SET_BRIGHTNESS));
-    percent_text(brightness_value_, s.brightness);
-    percent_text(night_value_, s.night_brightness);
-  }
   if (section_ == Section::Sound && volume_value_ != nullptr) percent_text(volume_value_, get().volume);
 
   // The redline / shift steppers are bounded by the tachometer range: rebuild the
@@ -363,7 +353,7 @@ void SettingsPage::close_section() {
     lv_obj_delete(detail_);
     detail_ = nullptr;
   }
-  ambient_label_ = night_row_ = day_title_ = brightness_value_ = night_value_ = nullptr;
+  brightness_value_ = nullptr;
   volume_value_ = link_status_ = memory_label_ = uptime_label_ = nullptr;
   for (auto& swatch : accent_swatches_) swatch = nullptr;
   section_ = Section::None;
@@ -388,10 +378,6 @@ void SettingsPage::update(uint32_t now_ms) {
 
 void SettingsPage::update_live_values(uint32_t now_ms) {
   char buf[40];
-  if (ambient_label_ != nullptr) {
-    snprintf(buf, sizeof(buf), "%u%% · %u", platform::ambient_level(), platform::light_sensor_raw());
-    set_text(ambient_label_, buf);
-  }
   if (link_status_ != nullptr) {
     const core::LinkState state = core::vehicle().link_state;
     set_text(link_status_, link_state_text(state));
@@ -415,24 +401,22 @@ void SettingsPage::update_live_values(uint32_t now_ms) {
 void SettingsPage::build_display(lv_obj_t* list) {
   const core::Settings& s = get();
 
-  rows::toggle(list, ICON_BRIGHTNESS_AUTO, core::tr(core::Str::SET_AUTO_BRIGHTNESS),
-               core::tr(core::Str::SET_AUTO_BRIGHTNESS_SUB), s.auto_brightness, on_auto_brightness, nullptr);
+  g_display_modes[0] = core::tr(core::Str::DISPLAY_LIGHT);
+  g_display_modes[1] = core::tr(core::Str::DISPLAY_DARK);
+  g_display_modes[2] = core::tr(core::Str::DISPLAY_FOLLOW_VEHICLE);
+  g_display_modes[3] = nullptr;
+  rows::segmented(list, ICON_SUN, core::tr(core::Str::SET_DISPLAY_MODE), g_display_modes,
+                  static_cast<uint32_t>(s.display_mode), on_display_mode, nullptr);
 
-  rows::Slider day = rows::slider(list, ICON_SUN, core::tr(core::Str::SET_BRIGHTNESS), 5, 100, s.brightness,
-                                  on_brightness, nullptr);
-  day_title_ = day.title;
-  set_text(day_title_, core::tr(s.auto_brightness ? core::Str::SET_DAY_BRIGHTNESS : core::Str::SET_BRIGHTNESS));
-  brightness_value_ = day.value;
+  rows::Slider brightness =
+      rows::slider(list, ICON_SUN, core::tr(core::Str::SET_BRIGHTNESS), 5, 100, s.brightness,
+                   on_brightness, nullptr);
+  brightness_value_ = brightness.value;
   percent_text(brightness_value_, s.brightness);
 
-  rows::Slider night = rows::slider(list, ICON_NIGHT, core::tr(core::Str::SET_NIGHT_BRIGHTNESS), 5, 100,
-                                    s.night_brightness, on_night_brightness, nullptr);
-  night_row_ = night.row;
-  night_value_ = night.value;
-  percent_text(night_value_, s.night_brightness);
-  set_visible(night_row_, s.auto_brightness);
-
-  ambient_label_ = rows::info(list, ICON_BRIGHTNESS, core::tr(core::Str::SET_AMBIENT), "--");
+  if (s.display_mode == core::DisplayMode::FollowVehicle) {
+    rows::note(list, core::tr(core::Str::DISPLAY_FOLLOW_UNAVAILABLE));
+  }
 
   rows::toggle(list, ICON_ROTATE, core::tr(core::Str::SET_FLIP), nullptr, s.flip_screen, on_flip, nullptr);
   rows::toggle(list, ICON_VIEW_GRID, core::tr(core::Str::SET_MIRROR), core::tr(core::Str::SET_MIRROR_SUB),
