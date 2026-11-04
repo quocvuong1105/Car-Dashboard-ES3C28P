@@ -136,7 +136,7 @@ void hide_navigation() {
   lv_obj_set_size(g.content, layout::kScreenW, layout::kContentH);
   if (g.reveal_overlay != nullptr) {
     lv_obj_clear_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_move_foreground(g.reveal_overlay);
+    lv_obj_move_to_index(g.reveal_overlay, -1);
   }
 }
 
