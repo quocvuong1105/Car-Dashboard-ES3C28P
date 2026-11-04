@@ -19,6 +19,9 @@ using TapFn = void (*)(void* user);
 void init();
 void deinit();
 
+/** Expand and center the banner when the navigation rail is hidden. */
+void set_navigation_hidden(bool hidden);
+
 /**
  * Shows the banner, replacing any current content.
  * @param duration_ms 0 = stays until tapped
