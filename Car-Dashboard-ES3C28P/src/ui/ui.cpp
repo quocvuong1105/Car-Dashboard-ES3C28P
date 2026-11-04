@@ -51,6 +51,7 @@ struct Shell {
   uint32_t last_touch_activity_ms = 0;
   bool menu_hidden = false;
   bool reveal_touch_active = false;
+  bool restore_flip_after_calibration = false;
 };
 
 Shell g;
@@ -284,6 +285,10 @@ void calibration_done() {
   g.last_touch_ms = platform::millis();
   g.last_touch_activity_ms = hal::touch::last_activity_ms();
   show_navigation(false);
+  if (g.restore_flip_after_calibration) {
+    hal::display::set_flipped(core::settings::get().flip_screen);
+    g.restore_flip_after_calibration = false;
+  }
   hal::display::set_mirror(core::settings::get().mirror_screen);
   g.pages[static_cast<int>(g.current)]->on_show();
 }
@@ -315,6 +320,8 @@ void start(bool run_touch_calibration) {
     // Calibration targets must be displayed unmirrored so the stored affine
     // correction remains independent from the user's Mirror preference.
     hal::display::set_mirror(false);
+    g.restore_flip_after_calibration = core::settings::get().flip_screen;
+    hal::display::set_flipped(false);
     calibration::start(calibration_done);
     lv_obj_delete(splash);
   } else {
@@ -347,6 +354,8 @@ PageId current_page() { return g.current; }
 
 void open_touch_calibration() {
   hal::display::set_mirror(false);
+  g.restore_flip_after_calibration = core::settings::get().flip_screen;
+  hal::display::set_flipped(false);
   calibration::start(calibration_done);
 }
 
