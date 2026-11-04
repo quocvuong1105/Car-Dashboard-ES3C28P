@@ -1,6 +1,7 @@
 #include "display.h"
 
 #include <Arduino.h>
+#include <string.h>
 #include <esp_heap_caps.h>
 
 #include "../config/app_config.h"
@@ -15,6 +16,7 @@ constexpr uint8_t kRotationLandscapeFlipped = 3;
 
 lv_display_t* g_display = nullptr;
 bool g_flipped = false;
+bool g_mirrored = false;
 
 void flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map) {
   const int32_t w = lv_area_get_width(area);
@@ -23,7 +25,35 @@ void flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map) {
   // panel expects: the buffer is sent by DMA without any conversion. LovyanGFX
   // waits for the previous transfer before starting the next one, and LVGL
   // always renders into the other buffer, so we can release this one at once.
-  lcd().pushImageDMA(area->x1, area->y1, w, h, reinterpret_cast<const lgfx::swap565_t*>(px_map));
+  int32_t x = area->x1;
+  int32_t y = area->y1;
+  if (g_mirrored) {
+    uint16_t* pixels = reinterpret_cast<uint16_t*>(px_map);
+    if (g_flipped) {
+      // With a 180-degree panel rotation, a horizontal physical mirror is a
+      // vertical reflection in LVGL's logical coordinate space.
+      static uint16_t row[320];
+      for (int32_t top = 0, bottom = h - 1; top < bottom; ++top, --bottom) {
+        uint16_t* a = pixels + static_cast<size_t>(top) * w;
+        uint16_t* b = pixels + static_cast<size_t>(bottom) * w;
+        memcpy(row, a, static_cast<size_t>(w) * sizeof(uint16_t));
+        memcpy(a, b, static_cast<size_t>(w) * sizeof(uint16_t));
+        memcpy(b, row, static_cast<size_t>(w) * sizeof(uint16_t));
+      }
+      y = lcd().height() - 1 - area->y2;
+    } else {
+      for (int32_t yy = 0; yy < h; ++yy) {
+        uint16_t* line = pixels + static_cast<size_t>(yy) * w;
+        for (int32_t left = 0, right = w - 1; left < right; ++left, --right) {
+          const uint16_t tmp = line[left];
+          line[left] = line[right];
+          line[right] = tmp;
+        }
+      }
+      x = lcd().width() - 1 - area->x2;
+    }
+  }
+  lcd().pushImageDMA(x, y, w, h, reinterpret_cast<const lgfx::swap565_t*>(px_map));
   lv_display_flush_ready(disp);
 }
 
@@ -31,7 +61,7 @@ void* alloc_dma(size_t bytes) { return heap_caps_malloc(bytes, MALLOC_CAP_DMA | 
 
 }  // namespace
 
-lv_display_t* init(bool flipped) {
+lv_display_t* init(bool flipped, bool mirrored) {
   lgfx::LGFX_Device& dev = lcd();
   if (!dev.init()) {
     LOG_E("DISP", "panel init failed");
@@ -39,6 +69,7 @@ lv_display_t* init(bool flipped) {
   }
   dev.initDMA();
   g_flipped = flipped;
+  g_mirrored = mirrored;
   dev.setRotation(flipped ? kRotationLandscapeFlipped : kRotationLandscape);
   dev.fillScreen(0x0000);
   dev.startWrite();  // the panel owns the HSPI bus: keep the transaction open
@@ -71,6 +102,15 @@ void set_flipped(bool flipped) {
   lv_obj_invalidate(lv_layer_top());
 }
 
+void set_mirror(bool mirrored) {
+  if (g_display == nullptr || mirrored == g_mirrored) return;
+  lcd().waitDMA();
+  g_mirrored = mirrored;
+  lv_obj_invalidate(lv_screen_active());
+  lv_obj_invalidate(lv_layer_top());
+}
+
 bool flipped() { return g_flipped; }
+bool mirrored() { return g_mirrored; }
 
 }  // namespace hal::display
