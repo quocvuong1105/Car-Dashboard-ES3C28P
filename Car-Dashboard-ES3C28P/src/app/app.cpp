@@ -259,7 +259,7 @@ void loop() {
   if (hal::touch::take_five_second_hold()) {
     core::settings::edit().mirror_screen = false;
     core::settings::commit(core::settings::kChangeMirror);
-    ui::toast(core::Severity::Normal, "Mirror", "Mirror disabled");
+    ui::toast(core::Severity::Normal, core::tr(core::Str::SET_MIRROR), core::tr(core::Str::OFF));
   }
   hal::buzzer::update(now);
   hal::rgb_led::update(now);
