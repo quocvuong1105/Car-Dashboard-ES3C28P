@@ -16,6 +16,7 @@ class StatusBar {
   void set_title(const char* title);
   void show_back(bool show);
   void set_visible(bool visible);
+  void set_full_width(bool full_width);
   void update(uint32_t now_ms);
 
  private:
