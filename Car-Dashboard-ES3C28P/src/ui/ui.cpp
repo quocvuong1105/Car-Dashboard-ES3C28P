@@ -260,6 +260,8 @@ void rebuild_async(void*) {
 
 void calibration_done() {
   lv_screen_load(g.screen);
+  g.last_touch_ms = platform::millis();
+  show_navigation(false);
   hal::display::set_mirror(core::settings::get().mirror_screen);
   g.pages[static_cast<int>(g.current)]->on_show();
 }
