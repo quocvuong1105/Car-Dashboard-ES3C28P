@@ -127,8 +127,6 @@ void refresh_alert_banner(uint32_t now_ms) {
 void show_navigation(bool keep_touch_blocker) {
   g.menu_hidden = false;
   g.rail.set_visible(true);
-  g.status.set_full_width(false);
-  banner::set_full_width(false);
   g.status.set_visible(true);
   lv_obj_set_pos(g.content, layout::kRailW, layout::kStatusH);
   lv_obj_set_size(g.content, layout::kContentW, layout::kContentH);
@@ -141,13 +139,11 @@ void show_navigation(bool keep_touch_blocker) {
 void hide_navigation() {
   if (!core::settings::get().auto_hide_menu || g.menu_hidden) return;
   g.menu_hidden = true;
-  // Hide only the left rail; keep the title/status bar visible across the full width.
-  g.status.set_full_width(true);
-  banner::set_full_width(true);
+  // Hide the complete navigation chrome: left rail and top title/status bar.
   g.rail.set_visible(false);
-  g.status.set_visible(true);
-  lv_obj_set_pos(g.content, 0, layout::kStatusH);
-  lv_obj_set_size(g.content, layout::kScreenW, layout::kContentH);
+  g.status.set_visible(false);
+  lv_obj_set_pos(g.content, 0, 0);
+  lv_obj_set_size(g.content, layout::kScreenW, layout::kScreenH);
   if (g.reveal_overlay != nullptr) {
     lv_obj_clear_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_to_index(g.reveal_overlay, -1);
