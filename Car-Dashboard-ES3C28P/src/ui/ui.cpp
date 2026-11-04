@@ -127,6 +127,8 @@ void refresh_alert_banner(uint32_t now_ms) {
 void show_navigation(bool keep_touch_blocker) {
   g.menu_hidden = false;
   g.rail.set_visible(true);
+  g.status.set_full_width(false);
+  banner::set_full_width(false);
   g.status.set_visible(true);
   lv_obj_set_pos(g.content, layout::kRailW, layout::kStatusH);
   lv_obj_set_size(g.content, layout::kContentW, layout::kContentH);
@@ -139,11 +141,13 @@ void show_navigation(bool keep_touch_blocker) {
 void hide_navigation() {
   if (!core::settings::get().auto_hide_menu || g.menu_hidden) return;
   g.menu_hidden = true;
-  // Hide the complete navigation chrome: left rail and top title/status bar.
+  // Hide only the left rail; keep the title/status bar visible across the full width.
+  g.status.set_full_width(true);
+  banner::set_full_width(true);
   g.rail.set_visible(false);
-  g.status.set_visible(false);
-  lv_obj_set_pos(g.content, 0, 0);
-  lv_obj_set_size(g.content, layout::kScreenW, layout::kScreenH);
+  g.status.set_visible(true);
+  lv_obj_set_pos(g.content, 0, layout::kStatusH);
+  lv_obj_set_size(g.content, layout::kScreenW, layout::kContentH);
   if (g.reveal_overlay != nullptr) {
     lv_obj_clear_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_to_index(g.reveal_overlay, -1);
@@ -331,6 +335,15 @@ void start(bool run_touch_calibration) {
 
 void navigate(PageId id) {
   if (id >= PageId::Count || g.content == nullptr) return;
+  if (id == g.current) {
+    Page* active = g.pages[static_cast<int>(g.current)];
+    if (active != nullptr && active->on_back()) {
+      g.status.set_title(active->title());
+      g.status.show_back(false);
+      active->update(platform::millis());
+    }
+    return;
+  }
   Page* previous = g.pages[static_cast<int>(g.current)];
   if (previous != nullptr && g.current != id) {
     previous->on_back();  // leave sub-views
