@@ -122,11 +122,6 @@
   "SET_SYSTEM": "Sistem",
   "SET_ABOUT": "Hakkında",
   "SET_BRIGHTNESS": "Parlaklık",
-  "SET_AUTO_BRIGHTNESS": "Otomatik parlaklık",
-  "SET_AUTO_BRIGHTNESS_SUB": "Ortam ışığı sensörünü kullanır",
-  "SET_DAY_BRIGHTNESS": "Gündüz parlaklığı",
-  "SET_NIGHT_BRIGHTNESS": "Gece parlaklığı",
-  "SET_AMBIENT": "Ortam ışığı",
   "SET_FLIP": "Ekranı 180° döndür",
   "SET_MIRROR": "Yatay aynalama",
   "SET_MIRROR_SUB": "Görüntüyü soldan sağa çevirir. Aynalamayı kapatmak için ekrana 5 saniye basılı tutun.",
@@ -195,5 +190,10 @@
   "ALERT_LINK": "Araç bağlantısı kesildi",
   "ALERT_LINK_TEXT": "Araç arayüzünü kontrol edin",
   "ALERT_TAP_HINT": "Kapatmak için dokunun",
-  "SETTINGS_RESTORED": "Ayarlar varsayılana döndü"
+  "SETTINGS_RESTORED": "Ayarlar varsayılana döndü",
+  "SET_DISPLAY_MODE": "Görüntü Modu",
+  "DISPLAY_LIGHT": "Açık",
+  "DISPLAY_DARK": "Koyu",
+  "DISPLAY_FOLLOW_VEHICLE": "Aracı Takip Et",
+  "DISPLAY_FOLLOW_UNAVAILABLE": "Araç aydınlatma durumu mevcut veri bağlantısından alınamıyor."
 }
