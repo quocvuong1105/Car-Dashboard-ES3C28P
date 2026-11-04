@@ -27,9 +27,15 @@ BARLOW_FILES = {
         f"{BARLOW_SOURCE_REV}/tools/fonts/ttf/BarlowSemiCondensed-SemiBold.ttf"
     ),
 }
-# The original fonts already contain ASCII, Latin-1 and Turkish glyphs.
-# These ranges add only Vietnamese-specific precomposed letters.
+# The base font source ranges contain ASCII plus a few selected symbols
+# and Turkish letters, but NOT the Vietnamese Latin-1 letters (à, á, â, è,
+# ê, ì, í, ò, ó, ô, ù, ú, etc.). Add those exact missing Vietnamese glyphs
+# as well as the Vietnamese Extended-A and Extended Additional blocks.
 VIETNAMESE_RANGES = (
+    "0x00C0-0x00C3,0x00C8-0x00CA,0x00CC-0x00CD,"
+    "0x00D2-0x00D5,0x00D9-0x00DA,0x00DD,"
+    "0x00E0-0x00E3,0x00E8-0x00EA,0x00EC-0x00ED,"
+    "0x00F2-0x00F5,0x00F9-0x00FA,0x00FD,"
     "0x0102-0x0103,0x0110-0x0111,0x0128-0x0129,0x0168-0x0169,"
     "0x01A0-0x01A1,0x01AF-0x01B0,0x1EA0-0x1EF9"
 )
