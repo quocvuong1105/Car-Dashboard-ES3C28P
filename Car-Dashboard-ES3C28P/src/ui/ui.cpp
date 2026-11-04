@@ -50,6 +50,7 @@ struct Shell {
   uint32_t last_touch_ms = 0;
   uint32_t last_touch_activity_ms = 0;
   bool menu_hidden = false;
+  bool reveal_touch_active = false;
 };
 
 Shell g;
@@ -127,7 +128,10 @@ void show_navigation(bool keep_touch_blocker) {
   g.rail.set_visible(true);
   lv_obj_set_pos(g.content, layout::kRailW, layout::kStatusH);
   lv_obj_set_size(g.content, layout::kContentW, layout::kContentH);
-  if (!keep_touch_blocker && g.reveal_overlay != nullptr) lv_obj_add_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+  if (!keep_touch_blocker && g.reveal_overlay != nullptr) {
+    lv_obj_add_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+    g.reveal_touch_active = false;
+  }
 }
 
 void hide_navigation() {
@@ -143,11 +147,15 @@ void hide_navigation() {
 }
 
 void reveal_pressed_cb(lv_event_t*) {
-  if (g.menu_hidden) show_navigation(true);
+  if (g.menu_hidden) {
+    show_navigation(true);
+    g.reveal_touch_active = true;
+  }
 }
 
 void reveal_released_cb(lv_event_t*) {
   if (g.reveal_overlay != nullptr) lv_obj_add_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+  g.reveal_touch_active = false;
 }
 
 // ---- Periodic refresh ------------------------------------------------------------------------
@@ -158,7 +166,14 @@ void tick_cb(lv_timer_t*) {
   if (touch_activity != g.last_touch_activity_ms) {
     g.last_touch_activity_ms = touch_activity;
     g.last_touch_ms = now;
-    if (g.menu_hidden) show_navigation(true);
+    if (g.menu_hidden) {
+      show_navigation(true);
+      g.reveal_touch_active = true;
+    }
+  }
+  if (g.reveal_touch_active && !hal::touch::pressed()) {
+    if (g.reveal_overlay != nullptr) lv_obj_add_flag(g.reveal_overlay, LV_OBJ_FLAG_HIDDEN);
+    g.reveal_touch_active = false;
   }
   const bool auto_hide = core::settings::get().auto_hide_menu;
   if (g.current != PageId::Dashboard || !auto_hide) {
