@@ -43,6 +43,7 @@ void sanitize(Settings& s) {
   s.speed_unit = sanitize_enum(s.speed_unit, SpeedUnit::Count, d.speed_unit);
   s.temp_unit = sanitize_enum(s.temp_unit, TempUnit::Count, d.temp_unit);
   s.pressure_unit = sanitize_enum(s.pressure_unit, PressureUnit::Count, d.pressure_unit);
+  s.display_mode = sanitize_enum(s.display_mode, DisplayMode::Count, d.display_mode);
 
   s.rpm_max = clamp<uint16_t>(round_to(s.rpm_max, 1000), 4000, 10000);
   s.redline_rpm = clamp<uint16_t>(round_to(s.redline_rpm, 250), 2000, s.rpm_max);
@@ -70,7 +71,7 @@ Settings defaults() {
   Settings s{};
   s.brightness = 85;
   s.night_brightness = 25;
-  s.auto_brightness = true;
+  s.auto_brightness = false;
   s.flip_screen = false;
   s.accent = Accent::Cyan;
   s.language = Language::English;
@@ -89,6 +90,7 @@ Settings defaults() {
   s.alert_sound = true;
   s.volume = 60;
   s.status_led = true;
+  s.display_mode = DisplayMode::Dark;
   s.demo_mode = true;
   s.dash_view = 0;
   s.corner_slots[0] = SignalId::CoolantTemp;
