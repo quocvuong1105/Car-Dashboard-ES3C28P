@@ -18,11 +18,11 @@
 #define LCDWIKI_LCD_SPI_HZ 40000000
 #endif
 
-// Kept as a compatibility macro because the application log uses this name.
+// Compatibility macro retained for existing application references.
 #if LCDWIKI_BOARD == LCDWIKI_ES3N28P
-#define CYD_BOARD_NAME "LCDWiki ES3N28P"
+#define CYD_BOARD_NAME "ESP32-S3 ES3N28P"
 #else
-#define CYD_BOARD_NAME "LCDWiki ES3C28P"
+#define CYD_BOARD_NAME "ESP32-S3 ES3C28P"
 #endif
 
 namespace board {
@@ -69,7 +69,7 @@ constexpr uint8_t kLedcRed = 4;
 constexpr uint8_t kLedcGreen = 5;
 constexpr uint8_t kLedcBlue = 6;
 
-// Legacy constants referenced by the original light-sensor implementation.
+// Legacy constants referenced by the existing light-sensor implementation.
 constexpr uint16_t kLightRawBright = 40;
 constexpr uint16_t kLightRawDark = 1500;
 }  // namespace board
