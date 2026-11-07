@@ -33,6 +33,7 @@ struct TouchCalibration {
 
   /** Same correction expressed for a display rotated by 180 degrees (w x h pixels). */
   TouchCalibration rotated_180(int32_t width, int32_t height) const;
+  TouchCalibration mirrored_x(int32_t width) const;
 
   /** Plausibility check (rejects corrupt or absurd matrices). */
   bool plausible() const;

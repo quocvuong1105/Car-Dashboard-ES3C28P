@@ -29,11 +29,18 @@ bool TouchCalibration::solve(const TouchPoint raw[3], const TouchPoint screen[3]
 }
 
 TouchCalibration TouchCalibration::rotated_180(int32_t width, int32_t height) const {
-  // R(p) = (W - x, H - y) with W = width - 1, H = height - 1.  R o M o R keeps the
-  // linear part and only moves the offsets.
+  // The raw FT6336G coordinates are first converted to the unrotated landscape
+  // space. Apply the panel transform to the calibrated output (R o M), not to
+  // both input and output (R o M o R).
   const float w = static_cast<float>(width - 1);
   const float h = static_cast<float>(height - 1);
-  return TouchCalibration{a, b, w - a * w - b * h - c, d, e, h - d * w - e * h - f};
+  return TouchCalibration{-a, -b, w - c, -d, -e, h - f};
+}
+
+TouchCalibration TouchCalibration::mirrored_x(int32_t width) const {
+  // Horizontal panel reflection applied after the calibration (H o M).
+  const float w = static_cast<float>(width - 1);
+  return TouchCalibration{-a, -b, w - c, d, e, f};
 }
 
 bool TouchCalibration::plausible() const {

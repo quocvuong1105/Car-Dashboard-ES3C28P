@@ -100,5 +100,7 @@ constexpr uint32_t kNormal = 250;
 
 /** Applies the LVGL default theme (dark) with the current accent colour. */
 void theme_apply(lv_display_t* display);
+bool theme_set_vehicle_dark(bool dark);
+bool theme_is_dark();
 
 }  // namespace ui

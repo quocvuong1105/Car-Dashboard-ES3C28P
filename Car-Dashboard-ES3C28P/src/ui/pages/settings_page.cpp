@@ -43,6 +43,51 @@ const char* const kTempUnits[] = {"°C", "°F", nullptr};
 const char* const kPressureUnits[] = {"kPa", "bar", "psi", nullptr};
 const char* const kRpmRanges[] = {"5000", "6000", "7000", "8000", "9000", nullptr};
 const char* const kLanguages[] = {"English", "Türkçe", "Tiếng Việt", nullptr};
+const char* const kDisplayModesEn[] = {"Light", "Dark", "Follow Vehicle", nullptr};
+const char* const kDisplayModesTr[] = {"Açık", "Koyu", "Aracı Takip Et", nullptr};
+const char* const kDisplayModesVi[] = {"Sáng", "Tối", "Theo đèn xe", nullptr};
+const char* const* display_mode_labels() {
+  switch (core::i18n::language()) {
+    case core::Language::Vietnamese: return kDisplayModesVi;
+    case core::Language::Turkish: return kDisplayModesTr;
+    default: return kDisplayModesEn;
+  }
+}
+const char* display_mode_title() {
+  switch (core::i18n::language()) {
+    case core::Language::Vietnamese: return "Chế độ hiển thị";
+    case core::Language::Turkish: return "Görüntü Modu";
+    default: return "Display Mode";
+  }
+}
+const char* mirror_screen_label() {
+  switch (core::i18n::language()) {
+    case core::Language::Vietnamese: return "Lật gương màn hình";
+    case core::Language::Turkish: return "Ekranı Aynala";
+    default: return "Mirror Screen";
+  }
+}
+const char* mirror_hold_hint() {
+  switch (core::i18n::language()) {
+    case core::Language::Vietnamese: return "Nhấn giữ bất kỳ vị trí nào 5 giây để tắt Mirror";
+    case core::Language::Turkish: return "Mirror özelliğini kapatmak için ekrana 5 saniye basılı tutun";
+    default: return "Hold anywhere for 5 seconds to turn Mirror off";
+  }
+}
+const char* vehicle_light_status(bool known, bool on) {
+  if (!known) {
+    switch (core::i18n::language()) {
+      case core::Language::Vietnamese: return "Chưa có dữ liệu đèn xe · giữ giao diện hiện tại";
+      case core::Language::Turkish: return "Araç ışık verisi yok · mevcut tema korunuyor";
+      default: return "No vehicle-light data · keeping current theme";
+    }
+  }
+  switch (core::i18n::language()) {
+    case core::Language::Vietnamese: return on ? "Đèn xe: BẬT · giao diện tối" : "Đèn xe: TẮT · giao diện sáng";
+    case core::Language::Turkish: return on ? "Araç ışıkları: AÇIK · koyu tema" : "Araç ışıkları: KAPALI · açık tema";
+    default: return on ? "Vehicle lights: ON · dark theme" : "Vehicle lights: OFF · light theme";
+  }
+}
 const char* g_sources[3] = {};  // translated at build time
 
 SettingsPage* g_self = nullptr;
@@ -94,20 +139,20 @@ void fmt_speed_or_off(int32_t v, char* out, uint32_t len) {
 
 // ---- Change handlers -----------------------------------------------------------------------
 
-void on_auto_brightness(lv_event_t* e) {
-  edit().auto_brightness = switch_on(e);
-  commit(chg::kChangeDisplay);
+void on_display_mode(lv_event_t* e) {
+  edit().display_mode = static_cast<core::DisplayMode>(selected_segment(e));
+  commit(chg::kChangeDisplayMode | chg::kChangeTheme);
 }
 void on_brightness(lv_event_t* e) {
   edit().brightness = static_cast<uint8_t>(slider_value(e));
   commit(chg::kChangeDisplay);
 }
-void on_night_brightness(lv_event_t* e) {
-  edit().night_brightness = static_cast<uint8_t>(slider_value(e));
-  commit(chg::kChangeDisplay);
-}
 void on_flip(lv_event_t* e) {
   edit().flip_screen = switch_on(e);
+  commit(chg::kChangeOrientation);
+}
+void on_mirror(lv_event_t* e) {
+  edit().mirror_screen = switch_on(e);
   commit(chg::kChangeOrientation);
 }
 void on_accent(lv_event_t* e) {
@@ -248,11 +293,7 @@ void SettingsPage::refresh_summaries() {
   const core::Settings& s = get();
   char buf[48];
 
-  if (s.auto_brightness) {
-    snprintf(buf, sizeof(buf), "%s · %u%%", core::tr(core::Str::AUTO), s.brightness);
-  } else {
-    snprintf(buf, sizeof(buf), "%u%%", s.brightness);
-  }
+  snprintf(buf, sizeof(buf), "%s · %u%%", display_mode_labels()[static_cast<uint8_t>(s.display_mode)], s.brightness);
   set_text(summaries_[static_cast<int>(Section::Display)], buf);
 
   snprintf(buf, sizeof(buf), "%s · %s · %s", core::units::label(core::Quantity::Speed, s),
@@ -288,12 +329,10 @@ void SettingsPage::on_show() {
 void SettingsPage::on_settings_changed(uint32_t changes) {
   refresh_summaries();
 
-  if (section_ == Section::Display && night_row_ != nullptr) {
-    const core::Settings& s = get();
-    set_visible(night_row_, s.auto_brightness);
-    set_text(day_title_, core::tr(s.auto_brightness ? core::Str::SET_DAY_BRIGHTNESS : core::Str::SET_BRIGHTNESS));
-    percent_text(brightness_value_, s.brightness);
-    percent_text(night_value_, s.night_brightness);
+  if (section_ == Section::Display) {
+    if (brightness_value_ != nullptr) percent_text(brightness_value_, get().brightness);
+    if (follow_vehicle_label_ != nullptr) set_visible(follow_vehicle_label_,
+        get().display_mode == core::DisplayMode::FollowVehicle);
   }
   if (section_ == Section::Sound && volume_value_ != nullptr) percent_text(volume_value_, get().volume);
 
@@ -355,7 +394,8 @@ void SettingsPage::close_section() {
     lv_obj_delete(detail_);
     detail_ = nullptr;
   }
-  ambient_label_ = night_row_ = day_title_ = brightness_value_ = night_value_ = nullptr;
+  brightness_value_ = nullptr;
+  follow_vehicle_label_ = nullptr;
   volume_value_ = link_status_ = memory_label_ = uptime_label_ = nullptr;
   for (auto& swatch : accent_swatches_) swatch = nullptr;
   section_ = Section::None;
@@ -380,9 +420,9 @@ void SettingsPage::update(uint32_t now_ms) {
 
 void SettingsPage::update_live_values(uint32_t now_ms) {
   char buf[40];
-  if (ambient_label_ != nullptr) {
-    snprintf(buf, sizeof(buf), "%u%% · %u", platform::ambient_level(), platform::light_sensor_raw());
-    set_text(ambient_label_, buf);
+  if (follow_vehicle_label_ != nullptr) {
+    const bool known = core::vehicle().vehicle_lights_fresh(now_ms);
+    set_text(follow_vehicle_label_, vehicle_light_status(known, known && core::vehicle().vehicle_lights_on()));
   }
   if (link_status_ != nullptr) {
     const core::LinkState state = core::vehicle().link_state;
@@ -407,26 +447,20 @@ void SettingsPage::update_live_values(uint32_t now_ms) {
 void SettingsPage::build_display(lv_obj_t* list) {
   const core::Settings& s = get();
 
-  rows::toggle(list, ICON_BRIGHTNESS_AUTO, core::tr(core::Str::SET_AUTO_BRIGHTNESS),
-               core::tr(core::Str::SET_AUTO_BRIGHTNESS_SUB), s.auto_brightness, on_auto_brightness, nullptr);
+  rows::segmented(list, ICON_BRIGHTNESS, display_mode_title(), display_mode_labels(),
+                  static_cast<uint32_t>(s.display_mode), on_display_mode, nullptr);
 
-  rows::Slider day = rows::slider(list, ICON_SUN, core::tr(core::Str::SET_BRIGHTNESS), 5, 100, s.brightness,
-                                  on_brightness, nullptr);
-  day_title_ = day.title;
-  set_text(day_title_, core::tr(s.auto_brightness ? core::Str::SET_DAY_BRIGHTNESS : core::Str::SET_BRIGHTNESS));
-  brightness_value_ = day.value;
+  rows::Slider brightness = rows::slider(list, ICON_SUN, core::tr(core::Str::SET_BRIGHTNESS), 5, 100,
+                                         s.brightness, on_brightness, nullptr);
+  brightness_value_ = brightness.value;
   percent_text(brightness_value_, s.brightness);
 
-  rows::Slider night = rows::slider(list, ICON_NIGHT, core::tr(core::Str::SET_NIGHT_BRIGHTNESS), 5, 100,
-                                    s.night_brightness, on_night_brightness, nullptr);
-  night_row_ = night.row;
-  night_value_ = night.value;
-  percent_text(night_value_, s.night_brightness);
-  set_visible(night_row_, s.auto_brightness);
-
-  ambient_label_ = rows::info(list, ICON_BRIGHTNESS, core::tr(core::Str::SET_AMBIENT), "--");
-
   rows::toggle(list, ICON_ROTATE, core::tr(core::Str::SET_FLIP), nullptr, s.flip_screen, on_flip, nullptr);
+  rows::toggle(list, ICON_VIEW_DASH, mirror_screen_label(), nullptr, s.mirror_screen, on_mirror, nullptr);
+  rows::note(list, mirror_hold_hint());
+  follow_vehicle_label_ = rows::note(list, vehicle_light_status(false, false));
+  set_visible(follow_vehicle_label_, s.display_mode == core::DisplayMode::FollowVehicle);
+  update_live_values(platform::millis());
 
   // Accent colour swatches.
   lv_obj_t* r = card(list);

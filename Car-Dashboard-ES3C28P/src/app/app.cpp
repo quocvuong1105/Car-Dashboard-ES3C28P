@@ -20,11 +20,11 @@
 #include "../hal/button.h"
 #include "../hal/buzzer.h"
 #include "../hal/display.h"
-#include "../hal/light_sensor.h"
 #include "../hal/nvs_storage.h"
 #include "../hal/rgb_led.h"
 #include "../hal/touch.h"
 #include "../ui/ui.h"
+#include "../ui/theme.h"
 
 #if !defined(ESP_ARDUINO_VERSION_MAJOR) || ESP_ARDUINO_VERSION_MAJOR < 3
 #error "CarCYD requires the ESP32 Arduino core 3.x (Boards Manager: esp32 by Espressif Systems)"
@@ -67,16 +67,12 @@ void select_data_source(uint32_t now_ms) {
 
 uint8_t target_brightness() {
   const core::Settings& s = core::settings::get();
-  if (!s.auto_brightness) return s.brightness;
-  const float ambient = hal::light_sensor::level() / 100.0f;
-  const float night = core::clamp<float>(s.night_brightness, 5.0f, s.brightness);
-  return static_cast<uint8_t>(core::lerp(night, s.brightness, ambient) + 0.5f);
+  return s.brightness;
 }
 
 void update_backlight(uint32_t now_ms) {
   if (core::elapsed(now_ms, g_last_backlight_ms) < APP_BACKLIGHT_TICK_MS) return;
   g_last_backlight_ms = now_ms;
-  hal::light_sensor::update(now_ms);
   hal::backlight::set_target(target_brightness());
   hal::backlight::update(now_ms);
   // The status LED follows the screen so it never dazzles at night.
@@ -162,7 +158,7 @@ void load_trip() {
 
 void on_settings_changed(uint32_t changes, void*) {
   const core::Settings& s = core::settings::get();
-  if (changes & core::settings::kChangeOrientation) hal::display::set_flipped(s.flip_screen);
+  if (changes & core::settings::kChangeOrientation) hal::display::set_orientation(s.flip_screen, s.mirror_screen);
   if (changes & core::settings::kChangeSound) hal::buzzer::set_volume(s.volume);
   if (changes & core::settings::kChangeDataSource) select_data_source(millis());
 }
@@ -205,14 +201,13 @@ void setup() {
   lv_log_register_print_cb(lvgl_log_cb);
 
   hal::backlight::init();
-  lv_display_t* display = hal::display::init(s.flip_screen);
+  lv_display_t* display = hal::display::init(s.flip_screen, s.mirror_screen);
   if (display == nullptr) halt_with_error("display");
   ui::init(display);
   ui::splash_show();
   lv_refr_now(nullptr);
   const uint32_t splash_start = millis();
 
-  hal::light_sensor::init();
   hal::backlight::set_target(target_brightness());  // fades in while booting
 
   // ---- Hardware -------------------------------------------------------------------------
@@ -248,6 +243,11 @@ void loop() {
   const uint32_t now = millis();
 
   core::link::poll(now);
+  const core::Settings& display_settings = core::settings::get();
+  if (display_settings.display_mode == core::DisplayMode::FollowVehicle &&
+      core::vehicle().vehicle_lights_fresh(now)) {
+    if (ui::theme_set_vehicle_dark(core::vehicle().vehicle_lights_on())) ui::request_rebuild();
+  }
   core::alerts().update(core::vehicle(), core::settings::get(), now);
   core::trip().update(core::vehicle(), core::settings::get(), now);
 
