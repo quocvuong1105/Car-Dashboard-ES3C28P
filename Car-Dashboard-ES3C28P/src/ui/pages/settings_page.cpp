@@ -331,7 +331,7 @@ void SettingsPage::on_settings_changed(uint32_t changes) {
 
   if (section_ == Section::Display) {
     if (brightness_value_ != nullptr) percent_text(brightness_value_, get().brightness);
-    if (follow_vehicle_label_ != nullptr) set_visible(lv_obj_get_parent(follow_vehicle_label_),
+    if (follow_vehicle_label_ != nullptr) set_visible(follow_vehicle_label_,
         get().display_mode == core::DisplayMode::FollowVehicle);
   }
   if (section_ == Section::Sound && volume_value_ != nullptr) percent_text(volume_value_, get().volume);
@@ -458,8 +458,8 @@ void SettingsPage::build_display(lv_obj_t* list) {
   rows::toggle(list, ICON_ROTATE, core::tr(core::Str::SET_FLIP), nullptr, s.flip_screen, on_flip, nullptr);
   rows::toggle(list, ICON_VIEW_DASH, mirror_screen_label(), nullptr, s.mirror_screen, on_mirror, nullptr);
   rows::note(list, mirror_hold_hint());
-  follow_vehicle_label_ = rows::info(list, ICON_BRIGHTNESS, display_mode_title(), "");
-  set_visible(lv_obj_get_parent(follow_vehicle_label_), s.display_mode == core::DisplayMode::FollowVehicle);
+  follow_vehicle_label_ = rows::note(list, vehicle_light_status(false, false));
+  set_visible(follow_vehicle_label_, s.display_mode == core::DisplayMode::FollowVehicle);
   update_live_values(platform::millis());
 
   // Accent colour swatches.
