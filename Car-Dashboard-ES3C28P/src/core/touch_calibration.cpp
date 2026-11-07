@@ -36,6 +36,12 @@ TouchCalibration TouchCalibration::rotated_180(int32_t width, int32_t height) co
   return TouchCalibration{a, b, w - a * w - b * h - c, d, e, h - d * w - e * h - f};
 }
 
+TouchCalibration TouchCalibration::mirrored_x(int32_t width) const {
+  const float w = static_cast<float>(width - 1);
+  // Conjugate the affine correction by horizontal reflection.
+  return TouchCalibration{a, -b, w - a * w - c, -d, e, f + d * w};
+}
+
 bool TouchCalibration::plausible() const {
   const float values[] = {a, b, c, d, e, f};
   for (float v : values) {
