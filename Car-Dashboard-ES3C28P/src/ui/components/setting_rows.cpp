@@ -17,6 +17,9 @@ lv_obj_t* base_row(lv_obj_t* list, bool clickable) {
   lv_obj_set_flex_flow(r, LV_FLEX_FLOW_ROW);
   lv_obj_set_flex_align(r, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   lv_obj_set_style_pad_column(r, 10, 0);
+  // Allow vertical drag gestures that begin on a row or its labels to
+  // propagate to the containing settings list.
+  lv_obj_add_flag(r, LV_OBJ_FLAG_SCROLL_CHAIN_VER);
   if (clickable) {
     lv_obj_set_clickable(r, true);
     lv_obj_set_style_bg_color(r, color::card_hi(), LV_STATE_PRESSED);
@@ -104,6 +107,7 @@ lv_obj_t* list(lv_obj_t* parent) {
   lv_obj_set_style_pad_bottom(l, layout::kPad + 4, 0);
   lv_obj_set_scrollable(l, true);
   lv_obj_set_scroll_dir(l, LV_DIR_VER);
+  lv_obj_add_flag(l, LV_OBJ_FLAG_SCROLL_CHAIN_VER);
   lv_obj_set_scrollbar_mode(l, LV_SCROLLBAR_MODE_ACTIVE);
   lv_obj_set_style_bg_color(l, color::text_faint(), LV_PART_SCROLLBAR);
   lv_obj_set_style_bg_opa(l, LV_OPA_COVER, LV_PART_SCROLLBAR);
