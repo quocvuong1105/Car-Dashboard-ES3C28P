@@ -394,7 +394,7 @@ void SettingsPage::close_section() {
     lv_obj_delete(detail_);
     detail_ = nullptr;
   }
-  ambient_label_ = night_row_ = day_title_ = brightness_value_ = night_value_ = nullptr;
+  brightness_value_ = nullptr;
   follow_vehicle_label_ = nullptr;
   volume_value_ = link_status_ = memory_label_ = uptime_label_ = nullptr;
   for (auto& swatch : accent_swatches_) swatch = nullptr;
