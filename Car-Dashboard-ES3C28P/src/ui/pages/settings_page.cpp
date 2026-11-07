@@ -538,7 +538,7 @@ void SettingsPage::build_about(lv_obj_t* list) {
   rows::info(list, ICON_HISTORY, core::tr(core::Str::ABOUT_BUILD), __DATE__);
   rows::info(list, ICON_CHIP, core::tr(core::Str::ABOUT_BOARD), info.board_name);
   rows::info(list, ICON_DASHBOARD, core::tr(core::Str::ABOUT_DISPLAY), info.panel_name);
-  snprintf(buf, sizeof(buf), "%s · %lu MHz", info.chip_model, static_cast<unsigned long>(info.cpu_mhz));
+  snprintf(buf, sizeof(buf), "Xtensa LX7 dual-core processor");
   rows::info(list, ICON_CHIP, core::tr(core::Str::ABOUT_CHIP), buf);
   snprintf(buf, sizeof(buf), "%lu MB", static_cast<unsigned long>(info.flash_bytes / (1024 * 1024)));
   rows::info(list, ICON_DATABASE, core::tr(core::Str::ABOUT_FLASH), buf);
