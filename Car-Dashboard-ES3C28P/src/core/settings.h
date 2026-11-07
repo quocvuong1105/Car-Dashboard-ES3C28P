@@ -31,9 +31,9 @@ constexpr uint8_t kGaugeSlots = 6;
  */
 struct Settings {
   // Display
-  uint8_t brightness;        ///< % (manual level, day level when auto)
-  uint8_t night_brightness;  ///< % used in the dark when auto brightness is on
-  bool auto_brightness;
+  uint8_t brightness;        ///< % (manual backlight level)
+  uint8_t night_brightness;  ///< Legacy v1 field; retained for binary settings compatibility.
+  bool auto_brightness;      ///< Legacy v1 field; no longer used.
   bool flip_screen;
   Accent accent;
   Language language;
