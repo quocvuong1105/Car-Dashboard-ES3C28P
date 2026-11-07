@@ -1,8 +1,8 @@
 # Yêu cầu thay đổi: Display Mode, xoay 180° và Mirror
 
-> Trạng thái: **Chờ người dùng xác nhận trước khi triển khai mã nguồn.**
+> Trạng thái: **Đã được người dùng xác nhận; đang triển khai trên branch `feature/display-mode-rotation-mirror`.**
 >
-> Commit này chỉ ghi nhận đặc tả/yêu cầu. Không thay đổi firmware, giao diện, cấu hình build hoặc mã nguồn hiện có.
+> Ghi chú triển khai: firmware hiện có chưa tích hợp ELM327/CAN thực tế. `Follow Vehicle` giữ nguyên theme cuối cùng khi không có dữ liệu đèn xe hợp lệ; chế độ tự chuyển chỉ hoạt động khi DataLink cung cấp trạng thái này.
 
 ## 1. Thay Auto Brightness bằng Display Mode
 
