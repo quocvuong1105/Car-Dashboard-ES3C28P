@@ -32,6 +32,7 @@ lv_point_t g_last{0, 0};
 bool g_i2c_ready = false;
 uint32_t g_mirror_hold_started = 0;
 bool g_mirror_hold_triggered = false;
+bool g_suppress_touch_until_release = false;
 
 bool read_registers(uint8_t reg, uint8_t* data, size_t len) {
   if (!g_i2c_ready) return false;
@@ -73,9 +74,15 @@ void read_cb(lv_indev_t*, lv_indev_data_t* data) {
   int32_t x = 0, y = 0;
   const bool pressed = g_enabled && read_landscape_point(x, y);
   if (!pressed) {
+    g_suppress_touch_until_release = false;
     g_press_count = 0;
     g_mirror_hold_started = 0;
     g_mirror_hold_triggered = false;
+    data->state = LV_INDEV_STATE_RELEASED;
+    data->point = g_last;
+    return;
+  }
+  if (g_suppress_touch_until_release) {
     data->state = LV_INDEV_STATE_RELEASED;
     data->point = g_last;
     return;
@@ -88,7 +95,11 @@ void read_cb(lv_indev_t*, lv_indev_data_t* data) {
       core::settings::edit().mirror_screen = false;
       core::settings::commit(core::settings::kChangeOrientation);
       g_mirror_hold_triggered = true;
+      g_suppress_touch_until_release = true;
+      data->state = LV_INDEV_STATE_RELEASED;
+      data->point = g_last;
       LOG_I("TOUCH", "5-second hold: Mirror Screen disabled");
+      return;
     }
   }
   const core::TouchPoint mapped = active_calibration().map(x, y);
