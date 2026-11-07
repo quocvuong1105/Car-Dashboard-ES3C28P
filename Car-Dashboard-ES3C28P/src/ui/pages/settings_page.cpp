@@ -55,7 +55,8 @@ uint32_t selected_segment(lv_event_t* e) { return lv_buttonmatrix_get_selected_b
 // propagate to the About list's scrollable viewport.
 void enable_vertical_scroll_bubble(lv_obj_t* obj) {
   if (obj == nullptr) return;
-  lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_VER | LV_OBJ_FLAG_GESTURE_BUBBLE);
+  lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_VER);
+  lv_obj_add_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE);
   const uint32_t child_count = lv_obj_get_child_count(obj);
   for (uint32_t i = 0; i < child_count; ++i) {
     enable_vertical_scroll_bubble(lv_obj_get_child(obj, i));
