@@ -20,6 +20,8 @@
 
 namespace core {
 
+enum class DisplayMode : uint8_t { Light = 0, Dark, FollowVehicle, Count };
+
 constexpr uint8_t kCornerSlots = 4;
 constexpr uint8_t kGaugeSlots = 6;
 
@@ -60,9 +62,11 @@ struct Settings {
   uint8_t dash_view;
   SignalId corner_slots[kCornerSlots];
   SignalId gauge_slots[kGaugeSlots];
+  DisplayMode display_mode;
+  bool mirror_screen;
 };
 
-constexpr uint16_t kSettingsVersion = 1;
+constexpr uint16_t kSettingsVersion = 2;
 
 namespace settings {
 
@@ -79,6 +83,7 @@ enum Change : uint32_t {
   kChangeLed = 1u << 8,
   kChangeDataSource = 1u << 9,
   kChangeLayout = 1u << 10,  ///< dashboard view / slots
+  kChangeDisplayMode = 1u << 11,
   kChangeAll = 0xFFFFFFFFu,
 };
 
