@@ -54,7 +54,7 @@ LcdWikiDevice g_device;
 }  // namespace
 
 lgfx::LGFX_Device& lcd() { return g_device; }
-const char* lcd_panel_name() { return "LCDWiki ILI9341V 240x320"; }
+const char* lcd_panel_name() { return "ILI9341V IPS TFT 240x320"; }
 uint32_t lcd_orientation_id() { return 0x45533301; }  // "ES3", driver revision 1
 
 }  // namespace hal
