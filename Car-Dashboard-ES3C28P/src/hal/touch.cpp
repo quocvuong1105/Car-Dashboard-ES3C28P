@@ -6,6 +6,7 @@
 #include "../config/board_config.h"
 #include "../core/log.h"
 #include "../core/persist.h"
+#include "../core/settings.h"
 #include "../core/util.h"
 #include "display.h"
 #include "lcd.h"
@@ -29,6 +30,8 @@ bool g_enabled = true;
 uint8_t g_press_count = 0;
 lv_point_t g_last{0, 0};
 bool g_i2c_ready = false;
+uint32_t g_mirror_hold_started = 0;
+bool g_mirror_hold_triggered = false;
 
 bool read_registers(uint8_t reg, uint8_t* data, size_t len) {
   if (!g_i2c_ready) return false;
@@ -60,8 +63,10 @@ bool read_landscape_point(int32_t& x, int32_t& y) {
 }
 
 core::TouchCalibration active_calibration() {
-  if (!display::flipped()) return g_cal;
-  return g_cal.rotated_180(lcd().width(), lcd().height());
+  core::TouchCalibration cal = g_cal;
+  if (display::flipped()) cal = cal.rotated_180(lcd().width(), lcd().height());
+  if (display::mirrored()) cal = cal.mirrored_x(lcd().width());
+  return cal;
 }
 
 void read_cb(lv_indev_t*, lv_indev_data_t* data) {
@@ -69,11 +74,23 @@ void read_cb(lv_indev_t*, lv_indev_data_t* data) {
   const bool pressed = g_enabled && read_landscape_point(x, y);
   if (!pressed) {
     g_press_count = 0;
+    g_mirror_hold_started = 0;
+    g_mirror_hold_triggered = false;
     data->state = LV_INDEV_STATE_RELEASED;
     data->point = g_last;
     return;
   }
   if (g_press_count < kPressDebounce) ++g_press_count;
+  if (!g_mirror_hold_triggered && core::settings::get().mirror_screen) {
+    const uint32_t now = millis();
+    if (g_mirror_hold_started == 0) g_mirror_hold_started = now;
+    else if (core::elapsed(now, g_mirror_hold_started) >= 5000) {
+      core::settings::edit().mirror_screen = false;
+      core::settings::commit(core::settings::kChangeOrientation);
+      g_mirror_hold_triggered = true;
+      LOG_I("TOUCH", "5-second hold: Mirror Screen disabled");
+    }
+  }
   const core::TouchPoint mapped = active_calibration().map(x, y);
   g_last.x = core::clamp<int32_t>(mapped.x, 0, lcd().width() - 1);
   g_last.y = core::clamp<int32_t>(mapped.y, 0, lcd().height() - 1);
@@ -130,7 +147,9 @@ bool read_raw(platform::TouchSample& out) {
 }
 
 void apply_calibration(const core::TouchCalibration& cal) {
-  const core::TouchCalibration base = display::flipped() ? cal.rotated_180(lcd().width(), lcd().height()) : cal;
+  core::TouchCalibration base = cal;
+  if (display::flipped()) base = base.rotated_180(lcd().width(), lcd().height());
+  if (display::mirrored()) base = base.mirrored_x(lcd().width());
   if (!base.plausible()) {
     LOG_W("TOUCH", "rejected implausible calibration");
     return;
