@@ -46,13 +46,8 @@ class SettingsPage final : public Page {
   Section section_ = Section::None;
 
   // Live values in sub-pages (null when not shown).
-  lv_obj_t* ambient_label_ = nullptr;
-  lv_obj_t* follow_vehicle_row_ = nullptr;
-  lv_obj_t* follow_vehicle_label_ = nullptr;
-  lv_obj_t* night_row_ = nullptr;
-  lv_obj_t* day_title_ = nullptr;
   lv_obj_t* brightness_value_ = nullptr;
-  lv_obj_t* night_value_ = nullptr;
+  lv_obj_t* follow_vehicle_label_ = nullptr;
   lv_obj_t* volume_value_ = nullptr;
   lv_obj_t* link_status_ = nullptr;
   lv_obj_t* memory_label_ = nullptr;
