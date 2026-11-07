@@ -15,6 +15,11 @@ constexpr uint8_t kRotationLandscapeFlipped = 3;
 
 lv_display_t* g_display = nullptr;
 bool g_flipped = false;
+bool g_mirrored = false;
+
+uint8_t rotation_value(bool flipped, bool mirrored) {
+  return static_cast<uint8_t>((flipped ? kRotationLandscapeFlipped : kRotationLandscape) | (mirrored ? 4 : 0));
+}
 
 void flush_cb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map) {
   const int32_t w = lv_area_get_width(area);
@@ -31,7 +36,7 @@ void* alloc_dma(size_t bytes) { return heap_caps_malloc(bytes, MALLOC_CAP_DMA | 
 
 }  // namespace
 
-lv_display_t* init(bool flipped) {
+lv_display_t* init(bool flipped, bool mirrored) {
   lgfx::LGFX_Device& dev = lcd();
   if (!dev.init()) {
     LOG_E("DISP", "panel init failed");
@@ -39,7 +44,8 @@ lv_display_t* init(bool flipped) {
   }
   dev.initDMA();
   g_flipped = flipped;
-  dev.setRotation(flipped ? kRotationLandscapeFlipped : kRotationLandscape);
+  g_mirrored = mirrored;
+  dev.setRotation(rotation_value(flipped, mirrored));
   dev.fillScreen(0x0000);
   dev.startWrite();  // the panel owns the HSPI bus: keep the transaction open
 
@@ -62,15 +68,17 @@ lv_display_t* init(bool flipped) {
   return g_display;
 }
 
-void set_flipped(bool flipped) {
-  if (g_display == nullptr || flipped == g_flipped) return;
+void set_orientation(bool flipped, bool mirrored) {
+  if (g_display == nullptr || (flipped == g_flipped && mirrored == g_mirrored)) return;
   g_flipped = flipped;
+  g_mirrored = mirrored;
   lcd().waitDMA();
-  lcd().setRotation(flipped ? kRotationLandscapeFlipped : kRotationLandscape);
+  lcd().setRotation(rotation_value(flipped, mirrored));
   lv_obj_invalidate(lv_screen_active());
   lv_obj_invalidate(lv_layer_top());
 }
 
 bool flipped() { return g_flipped; }
+bool mirrored() { return g_mirrored; }
 
 }  // namespace hal::display
