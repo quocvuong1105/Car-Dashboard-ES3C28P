@@ -67,6 +67,12 @@ class VehicleState {
 
   bool engine_running(uint32_t now_ms) const;
 
+  // Optional body/CAN signal. Missing data is not interpreted as lights OFF.
+  void set_vehicle_lights(bool on, uint32_t now_ms) { vehicle_lights_on_ = on; vehicle_lights_updated_ms_ = now_ms; vehicle_lights_valid_ = true; }
+  void invalidate_vehicle_lights() { vehicle_lights_valid_ = false; }
+  bool vehicle_lights_fresh(uint32_t now_ms) const { return vehicle_lights_valid_ && (now_ms - vehicle_lights_updated_ms_) <= kSignalStaleMs; }
+  bool vehicle_lights_on() const { return vehicle_lights_on_; }
+
   // Link status (written by the data link).
   LinkState link_state = LinkState::Disconnected;
   bool simulated = false;
@@ -79,6 +85,9 @@ class VehicleState {
 
  private:
   SignalValue signals_[kSignalCount];
+  bool vehicle_lights_valid_ = false;
+  bool vehicle_lights_on_ = false;
+  uint32_t vehicle_lights_updated_ms_ = 0;
 };
 
 /** The single vehicle state instance. */
