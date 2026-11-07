@@ -51,6 +51,17 @@ bool switch_on(lv_event_t* e) { return lv_obj_has_state(lv_event_get_target_obj(
 int32_t slider_value(lv_event_t* e) { return lv_slider_get_value(lv_event_get_target_obj(e)); }
 uint32_t selected_segment(lv_event_t* e) { return lv_buttonmatrix_get_selected_button(lv_event_get_target_obj(e)); }
 
+// Make vertical drag/gesture events from nested labels and row widgets
+// propagate to the About list's scrollable viewport.
+void enable_vertical_scroll_bubble(lv_obj_t* obj) {
+  if (obj == nullptr) return;
+  lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_CHAIN_VER | LV_OBJ_FLAG_GESTURE_BUBBLE);
+  const uint32_t child_count = lv_obj_get_child_count(obj);
+  for (uint32_t i = 0; i < child_count; ++i) {
+    enable_vertical_scroll_bubble(lv_obj_get_child(obj, i));
+  }
+}
+
 void percent_text(lv_obj_t* label, int32_t value) {
   char buf[8];
   snprintf(buf, sizeof(buf), "%ld%%", static_cast<long>(value));
@@ -546,6 +557,12 @@ void SettingsPage::build_about(lv_obj_t* list) {
   uptime_label_ = rows::info(list, ICON_TIMER, core::tr(core::Str::ABOUT_UPTIME), "");
   snprintf(buf, sizeof(buf), "LVGL %d.%d.%d", LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH);
   rows::info(list, ICON_PALETTE, core::tr(core::Str::ABOUT_GRAPHICS), buf);
+
+  // Rows contain labels/icons as child objects. Apply scroll/gesture bubbling
+  // to every descendant so a drag starting directly on text reaches the list.
+  lv_obj_add_flag(list, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scroll_dir(list, LV_DIR_VER);
+  enable_vertical_scroll_bubble(list);
 }
 
 }  // namespace ui
